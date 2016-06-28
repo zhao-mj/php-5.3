@@ -90,7 +90,7 @@ typedef struct _fcgi_end_request_rec {
 } fcgi_end_request_rec;
 
 /* FastCGI client API */
-
+//fastcgi 客户端api
 typedef struct _fcgi_request {
 	int            listen_socket;
 #ifdef _WIN32

@@ -1533,7 +1533,7 @@ int main(int argc, char *argv[])
 								20000419 */
 #endif
 #endif
-
+//ZTS 线程安全
 #ifdef ZTS
 	tsrm_startup(1, 1, 0, NULL);
 	tsrm_ls = ts_resource(0);
@@ -1560,7 +1560,7 @@ int main(int argc, char *argv[])
 			cgi = 1;
 		}
 	}
-
+	//url编码转换
 	if((query_string = getenv("QUERY_STRING")) != NULL && strchr(query_string, '=') == NULL) {
 		/* we've got query string that has no = - apache CGI will pass it to command line */
 		unsigned char *p;
@@ -1734,7 +1734,7 @@ consult the installation file that came with this distribution, or visit \n\
 		fcgi_set_mgmt_var("FCGI_MAX_CONNS", sizeof("FCGI_MAX_CONNS")-1, "1", sizeof("1")-1);
 		fcgi_set_mgmt_var("FCGI_MAX_REQS",  sizeof("FCGI_MAX_REQS")-1,  "1", sizeof("1")-1);
 	}
-
+	//fork子进程数
 	if (children) {
 		int running = 0;
 		pid_t pid;
