@@ -364,7 +364,7 @@ int fpm_children_make(struct fpm_worker_pool_s *wp, int in_event_loop, int nb_to
 	struct fpm_child_s *child;
 	int max;
 	static int warned = 0;
-
+	//动态模式
 	if (wp->config->pm == PM_STYLE_DYNAMIC) {
 		if (!in_event_loop) { /* starting */
 			max = wp->config->pm_start_servers;
@@ -372,12 +372,14 @@ int fpm_children_make(struct fpm_worker_pool_s *wp, int in_event_loop, int nb_to
 			max = wp->running_children + nb_to_spawn;
 		}
 	} else if (wp->config->pm == PM_STYLE_ONDEMAND) {
+		//ondemand模式
 		if (!in_event_loop) { /* starting */
 			max = 0; /* do not create any child at startup */
 		} else {
 			max = wp->running_children + nb_to_spawn;
 		}
 	} else { /* PM_STYLE_STATIC */
+		//静态模式
 		max = wp->config->pm_max_children;
 	}
 
@@ -396,7 +398,7 @@ int fpm_children_make(struct fpm_worker_pool_s *wp, int in_event_loop, int nb_to
 		if (!child) {
 			return 2;
 		}
-
+		//fork子进程
 		pid = fork();
 
 		switch (pid) {
@@ -433,7 +435,8 @@ int fpm_children_make(struct fpm_worker_pool_s *wp, int in_event_loop, int nb_to
 /* }}} */
 
 int fpm_children_create_initial(struct fpm_worker_pool_s *wp) /* {{{ */
-{
+{	
+	//请求模式
 	if (wp->config->pm == PM_STYLE_ONDEMAND) {
 		wp->ondemand_event = (struct fpm_event_s *)malloc(sizeof(struct fpm_event_s));
 

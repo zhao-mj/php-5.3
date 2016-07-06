@@ -1636,7 +1636,7 @@ int fpm_conf_init_main(int test_conf, int force_daemon) /* {{{ */
 			return -1;
 		}
 	}
-
+	//加载配置文件
 	ret = fpm_conf_load_ini_file(fpm_globals.config TSRMLS_CC);
 
 	if (0 > ret) {

@@ -1,0 +1,49 @@
+zend/zend_stream.c
+
+typedef struct _zend_file_handle {
+	zend_stream_type  type;
+	char              *filename;
+	char              *opened_path;
+	union {
+		int           fd;
+		FILE          *fp;
+		zend_stream   stream;
+	} handle;
+	zend_bool free_filename;
+} zend_file_handle;
+
+
+main/SAPI.h
+º¯Êý
+SG:
+#ifdef ZTS
+# define SG(v) TSRMG(sapi_globals_id, sapi_globals_struct *, v)
+SAPI_API extern int sapi_globals_id;
+#else
+# define SG(v) (sapi_globals.v)
+extern SAPI_API sapi_globals_struct sapi_globals;
+#endif
+
+PG:
+#ifdef ZTS
+# define PG(v) TSRMG(core_globals_id, php_core_globals *, v)
+extern PHPAPI int core_globals_id;
+#else
+# define PG(v) (core_globals.v)
+extern ZEND_API struct _php_core_globals core_globals;
+#endif
+
+main/php_globals.h
+º¯Êý£º
+#ifdef ZTS
+# define PG(v) TSRMG(core_globals_id, php_core_globals *, v)
+extern PHPAPI int core_globals_id;
+#else
+# define PG(v) (core_globals.v)
+extern ZEND_API struct _php_core_globals core_globals;
+#endif
+
+
+main/fopen_wrappers.c
+º¯Êý:
+php_fopen_primary_script

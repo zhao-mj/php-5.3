@@ -1819,7 +1819,7 @@ consult the installation file that came with this distribution, or visit \n\
 			return FPM_EXIT_SOFTWARE;
 		}
 	}
-
+	//fpm初始化
 	if (0 > fpm_init(argc, argv, fpm_config ? fpm_config : CGIG(fpm_config), fpm_prefix, fpm_pid, test_conf, php_allow_to_run_as_root, force_daemon)) {
 
 		if (fpm_globals.send_config_pipe[1]) {
@@ -1838,7 +1838,7 @@ consult the installation file that came with this distribution, or visit \n\
 		close(fpm_globals.send_config_pipe[1]);
 	}
 	fpm_is_running = 1;
-
+	//fpm fork子进程
 	fcgi_fd = fpm_run(&max_requests);
 	parent = 0;
 
