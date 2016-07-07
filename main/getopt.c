@@ -79,6 +79,7 @@ PHPAPI int php_getopt(int argc, char* const *argv, const opt_struct opts[], char
 			}
 		}
 	}
+	//参数以--开头
 	if ((argv[*optind][0] == '-') && (argv[*optind][1] == '-')) {
 		char *pos;
 		int arg_end = strlen(argv[*optind])-1;
@@ -92,6 +93,9 @@ PHPAPI int php_getopt(int argc, char* const *argv, const opt_struct opts[], char
 		arg_start = 2;
 
 		/* Check for <arg>=<val> */
+		//--arg=val
+		//查找字符串
+		//代码位于：main\php.h-->zend_operatiors.h--zend_memnstr
 		if ((pos = php_memnstr(&argv[*optind][arg_start], "=", 1, argv[*optind]+arg_end)) != NULL) {
 			arg_end = pos-&argv[*optind][arg_start];
 			arg_start++;

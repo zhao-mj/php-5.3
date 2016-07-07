@@ -140,6 +140,7 @@ static char *php_optarg = NULL;
 static int php_optind = 1;
 static zend_module_entry cgi_module_entry;
 
+//定义在php_getopt.h文件
 static const opt_struct OPTIONS[] = {
 	{'c', 1, "php-ini"},
 	{'d', 1, "define"},
