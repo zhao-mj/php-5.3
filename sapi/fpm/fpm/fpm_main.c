@@ -1605,6 +1605,7 @@ int main(int argc, char *argv[])
 	while ((c = php_getopt(argc, argv, OPTIONS, &php_optarg, &php_optind, 0, 2)) != -1) {
 		switch (c) {
 			case 'c':
+				//php-ini配置文件
 				if (cgi_sapi_module.php_ini_path_override) {
 					free(cgi_sapi_module.php_ini_path_override);
 				}
@@ -1612,6 +1613,7 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'n':
+				//no-php-ini
 				cgi_sapi_module.php_ini_ignore = 1;
 				break;
 
@@ -1648,26 +1650,32 @@ int main(int argc, char *argv[])
 			}
 
 			case 'y':
+				//fpm_config 配置文件
 				fpm_config = php_optarg;
 				break;
 
 			case 'p':
+				//prefix 前缀
 				fpm_prefix = php_optarg;
 				break;
 
 			case 'g':
+				//进程id
 				fpm_pid = php_optarg;
 				break;
 
 			case 'e': /* enable extended info output */
+				//profile-info
 				CG(compiler_options) |= ZEND_COMPILE_EXTENDED_INFO;
 				break;
 
 			case 't': 
+				//test 测试模式
 				test_conf++;
 				break;
 
 			case 'm': /* list compiled in modules */
+				//modules
 				cgi_sapi_module.startup(&cgi_sapi_module);
 				php_output_startup();
 				php_output_activate(TSRMLS_C);
@@ -1691,6 +1699,7 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'D': /* daemonize */
+				//守护进程模式
 				force_daemon = 1;
 				break;
 
@@ -1701,10 +1710,12 @@ int main(int argc, char *argv[])
 			default:
 			case 'h':
 			case '?':
+				//help
 				cgi_sapi_module.startup(&cgi_sapi_module);
 				php_output_startup();
 				php_output_activate(TSRMLS_C);
 				SG(headers_sent) = 1;
+				//help内容
 				php_cgi_usage(argv[0]);
 				php_end_ob_buffers(1 TSRMLS_CC);
 				fcgi_shutdown();
@@ -1712,6 +1723,7 @@ int main(int argc, char *argv[])
 				goto out;
 
 			case 'v': /* show php version & quit */
+				//版本信息
 				cgi_sapi_module.startup(&cgi_sapi_module);
 				if (php_request_startup(TSRMLS_C) == FAILURE) {
 					SG(server_context) = NULL;
@@ -1743,6 +1755,7 @@ int main(int argc, char *argv[])
 		}
 		SG(headers_sent) = 1;
 		SG(request_info).no_headers = 1;
+		//输出info信息
 		php_print_info(0xFFFFFFFF TSRMLS_CC);
 		php_request_shutdown((void *) 0);
 		fcgi_shutdown();
