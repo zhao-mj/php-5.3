@@ -1599,6 +1599,7 @@ void php_request_shutdown_for_hook(void *dummy)
 
 /* {{{ php_request_shutdown
  */
+//请求关闭操作
 void php_request_shutdown(void *dummy)
 {
 	zend_bool report_memleaks;
@@ -1615,6 +1616,7 @@ void php_request_shutdown(void *dummy)
 	php_deactivate_ticks(TSRMLS_C);
 
 	/* 1. Call all possible shutdown functions registered with register_shutdown_function() */
+	//回调用户注册的register_shutdown_function(XXX)方法
 	if (PG(modules_activated)) zend_try {
 		php_call_shutdown_functions(TSRMLS_C);
 	} zend_end_try();
@@ -1625,8 +1627,10 @@ void php_request_shutdown(void *dummy)
 	} zend_end_try();
 
 	/* 3. Flush all output buffers */
+	//刷新缓冲区
 	zend_try {
 		zend_bool send_buffer = SG(request_info).headers_only ? 0 : 1;
+		//此处,判断输出缓冲区大小是否超过限制
 		if (CG(unclean_shutdown) && PG(last_error_type) == E_ERROR &&
 				OG(ob_nesting_level) && !OG(active_ob_buffer).chunk_size && PG(memory_limit) < zend_memory_usage(1 TSRMLS_CC)) {
 			send_buffer = 0;
