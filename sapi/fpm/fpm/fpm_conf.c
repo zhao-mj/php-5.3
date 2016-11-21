@@ -774,6 +774,7 @@ static int fpm_conf_process_all_pools() /* {{{ */
 		}
 
 		/* pm.start_servers, pm.min_spare_servers, pm.max_spare_servers */
+		//动态模式
 		if (wp->config->pm == PM_STYLE_DYNAMIC) {
 			struct fpm_worker_pool_config_s *config = wp->config;
 
@@ -786,18 +787,18 @@ static int fpm_conf_process_all_pools() /* {{{ */
 				zlog(ZLOG_ALERT, "[pool %s] pm.max_spare_servers(%d) must be a positive value", wp->config->name, config->pm_max_spare_servers);
 				return -1;
 			}
-
+			//最小和最大空闲进程数必须小于最大子进程数
 			if (config->pm_min_spare_servers > config->pm_max_children ||
 					config->pm_max_spare_servers > config->pm_max_children) {
 				zlog(ZLOG_ALERT, "[pool %s] pm.min_spare_servers(%d) and pm.max_spare_servers(%d) cannot be greater than pm.max_children(%d)", wp->config->name, config->pm_min_spare_servers, config->pm_max_spare_servers, config->pm_max_children);
 				return -1;
 			}
-
+			//最大空闲子进程数 必须大于 最小空闲子进程数
 			if (config->pm_max_spare_servers < config->pm_min_spare_servers) {
 				zlog(ZLOG_ALERT, "[pool %s] pm.max_spare_servers(%d) must not be less than pm.min_spare_servers(%d)", wp->config->name, config->pm_max_spare_servers, config->pm_min_spare_servers);
 				return -1;
 			}
-
+			//默认启动进程数为 (最大空闲数+最小空闲数)/2，如果有设置，进程数范围必须在 最小空闲进程数~最大空闲进程数 之间
 			if (config->pm_start_servers <= 0) {
 				config->pm_start_servers = config->pm_min_spare_servers + ((config->pm_max_spare_servers - config->pm_min_spare_servers) / 2);
 				zlog(ZLOG_WARNING, "[pool %s] pm.start_servers is not set. It's been set to %d.", wp->config->name, config->pm_start_servers);
@@ -806,14 +807,16 @@ static int fpm_conf_process_all_pools() /* {{{ */
 				zlog(ZLOG_ALERT, "[pool %s] pm.start_servers(%d) must not be less than pm.min_spare_servers(%d) and not greater than pm.max_spare_servers(%d)", wp->config->name, config->pm_start_servers, config->pm_min_spare_servers, config->pm_max_spare_servers);
 				return -1;
 			}
-		} else if (wp->config->pm == PM_STYLE_ONDEMAND) {
+		} else if (wp->config->pm == PM_STYLE_ONDEMAND) { 
+			//ONDEMAND 模式
+			//根据请求分配进程数
 			struct fpm_worker_pool_config_s *config = wp->config;
 
 			if (!fpm_event_support_edge_trigger()) {
 				zlog(ZLOG_ALERT, "[pool %s] ondemand process manager can ONLY be used when events.mechanisme is either epoll (Linux) or kqueue (*BSD).", wp->config->name);
 				return -1;
 			}
-
+			//超时时间
 			if (config->pm_process_idle_timeout < 1) {
 				zlog(ZLOG_ALERT, "[pool %s] pm.process_idle_timeout(%ds) must be greater than 0s", wp->config->name, config->pm_process_idle_timeout);
 				return -1;

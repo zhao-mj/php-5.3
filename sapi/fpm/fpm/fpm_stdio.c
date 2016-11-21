@@ -49,6 +49,7 @@ int fpm_stdio_init_final() /* {{{ */
 		if (fpm_globals.error_log_fd > 0 && fpm_globals.error_log_fd != STDERR_FILENO) {
 
 			/* there might be messages to stderr from other parts of the code, we need to log them all */
+			//绑定报错输出接口
 			if (0 > dup2(fpm_globals.error_log_fd, STDERR_FILENO)) {
 				zlog(ZLOG_SYSERROR, "failed to init stdio: dup2()");
 				return -1;

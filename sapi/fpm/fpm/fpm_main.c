@@ -867,6 +867,7 @@ static int php_cgi_startup(sapi_module_struct *sapi_module)
 
 /* {{{ sapi_module_struct cgi_sapi_module
  */
+//sapi_module_struct定义 位于main/SAPI.h
 static sapi_module_struct cgi_sapi_module = {
 	"fpm-fcgi",						/* name */
 	"FPM/FastCGI",					/* pretty name */
@@ -1573,7 +1574,7 @@ int main(int argc, char *argv[])
 	int force_daemon = -1;
 	int php_information = 0;
 	int php_allow_to_run_as_root = 0;
-
+	//fastcgi初始化操作 代码位于fpm.c
 	fcgi_init();
 
 #ifdef HAVE_SIGNAL_H
@@ -1591,7 +1592,7 @@ int main(int argc, char *argv[])
 	tsrm_startup(1, 1, 0, NULL);
 	tsrm_ls = ts_resource(0);
 #endif
-
+	//代码位于 main/SAPI.C
 	sapi_startup(&cgi_sapi_module);
 	cgi_sapi_module.php_ini_path_override = NULL;
 
@@ -1787,6 +1788,7 @@ int main(int argc, char *argv[])
 	cgi_sapi_module.executable_location = argv[0];
 
 	/* startup after we get the above ini override se we get things right */
+	//调用cgi_sapi  startup接口
 	if (cgi_sapi_module.startup(&cgi_sapi_module) == FAILURE) {
 #ifdef ZTS
 		tsrm_shutdown();

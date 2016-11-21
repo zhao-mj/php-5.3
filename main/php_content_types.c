@@ -74,8 +74,11 @@ SAPI_API SAPI_POST_READER_FUNC(php_default_post_reader)
 //注册请求数据函数
 int php_startup_sapi_content_types(TSRMLS_D)
 {
+	//注册post处理函数
 	sapi_register_default_post_reader(php_default_post_reader);
+	//注册变量解析函数
 	sapi_register_treat_data(php_default_treat_data);
+	//输入过滤
 	sapi_register_input_filter(php_default_input_filter, NULL);
 	return SUCCESS;
 }

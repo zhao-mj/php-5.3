@@ -99,6 +99,7 @@ ZEND_API int zend_ini_startup(TSRMLS_D) /* {{{ */
 }
 /* }}} */
 
+//回收ini_set配置
 ZEND_API int zend_ini_shutdown(TSRMLS_D) /* {{{ */
 {
 	zend_hash_destroy(EG(ini_directives));

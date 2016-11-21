@@ -311,7 +311,7 @@ static struct fpm_child_s *fpm_resources_prepare(struct fpm_worker_pool_s *wp) /
 
 	c->wp = wp;
 	c->fd_stdout = -1; c->fd_stderr = -1;
-
+	//创建父子进程通信管道
 	if (0 > fpm_stdio_prepare_pipes(c)) {
 		fpm_child_free(c);
 		return 0;

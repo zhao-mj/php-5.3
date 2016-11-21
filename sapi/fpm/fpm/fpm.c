@@ -52,7 +52,14 @@ int fpm_init(int argc, char **argv, char *config, char *prefix, char *pid, int t
 	fpm_globals.prefix = prefix;
 	fpm_globals.pid = pid;
 	fpm_globals.run_as_root = run_as_root;
+	//fpm_php_init_main() 位于 fpm_php.c
+	//fpm_stdio_init_main() 输入输出设备初始化 fpm_stdio.c
+	//fpm_conf_init_main() fpm配置 fpm_conf.c
+	//fpm_unix_init_main(): 设置linux fpm进程环境，例如：最大打开的文件数、内存分页大小、守护进程模式等 fpm_unix.c
 
+	//fpm_pctl_init_main() fpm_process_ctrl.c 
+
+	//fpm_signals_init_main()设置信号
 	if (0 > fpm_php_init_main()           ||
 	    0 > fpm_stdio_init_main()         ||
 	    0 > fpm_conf_init_main(test_conf, force_daemon) ||
@@ -73,7 +80,7 @@ int fpm_init(int argc, char **argv, char *config, char *prefix, char *pid, int t
 			return -1;
 		}
 	}
-
+	//将进程id写入到相应的文件中
 	if (0 > fpm_conf_write_pid()) {
 		zlog(ZLOG_ERROR, "FPM initialization failed");
 		return -1;

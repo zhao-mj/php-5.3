@@ -209,6 +209,7 @@ void fpm_php_soft_quit() /* {{{ */
 
 int fpm_php_init_main() /* {{{ */
 {
+	//注册fpm回收功能
 	if (0 > fpm_cleanup_add(FPM_CLEANUP_PARENT, fpm_php_cleanup, 0)) {
 		return -1;
 	}
