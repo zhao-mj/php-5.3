@@ -124,23 +124,23 @@ void fpm_request_info() /* {{{ */
 
 	proc->request_stage = FPM_REQUEST_INFO;
 	proc->tv = now;
-
+	//请求地址
 	if (request_uri) {
 		strlcpy(proc->request_uri, request_uri, sizeof(proc->request_uri));
 	}
-
+	//请求方法
 	if (request_method) {
 		strlcpy(proc->request_method, request_method, sizeof(proc->request_method));
 	}
-
+	//url参数信息
 	if (query_string) {
 		strlcpy(proc->query_string, query_string, sizeof(proc->query_string));
 	}
-
+	//用户认真信息
 	if (auth_user) {
 		strlcpy(proc->auth_user, auth_user, sizeof(proc->auth_user));
 	}
-
+	//请求头长度
 	proc->content_length = content_length;
 
 	/* if cgi.fix_pathinfo is set to "1" and script cannot be found (404)

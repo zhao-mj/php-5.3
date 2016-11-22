@@ -198,7 +198,7 @@ int fpm_stdio_prepare_pipes(struct fpm_child_s *child) /* {{{ */
 		close(fd_stdout[1]);
 		return -1;
 	}
-
+	//非阻塞
 	if (0 > fd_set_blocked(fd_stdout[0], 0) || 0 > fd_set_blocked(fd_stderr[0], 0)) {
 		zlog(ZLOG_SYSERROR, "failed to unblock pipes");
 		close(fd_stdout[0]);
@@ -210,19 +210,19 @@ int fpm_stdio_prepare_pipes(struct fpm_child_s *child) /* {{{ */
 	return 0;
 }
 /* }}} */
-
+//父进程与子进程管道通信配置
 int fpm_stdio_parent_use_pipes(struct fpm_child_s *child) /* {{{ */
 {
 	if (0 == child->wp->config->catch_workers_output) { /* not required */
 		return 0;
 	}
-
+	//关闭写通道
 	close(fd_stdout[1]);
 	close(fd_stderr[1]);
 
 	child->fd_stdout = fd_stdout[0];
 	child->fd_stderr = fd_stderr[0];
-
+	//打开读通道
 	fpm_event_set(&child->ev_stdout, child->fd_stdout, FPM_EV_READ, fpm_stdio_child_said, child);
 	fpm_event_add(&child->ev_stdout, 0);
 

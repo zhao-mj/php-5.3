@@ -221,6 +221,7 @@ int fcgi_init(void)
 			return 1;
 		}
 #else
+		//设置信号
 		fcgi_setup_signals();
 		return 1;
 #endif
@@ -802,12 +803,14 @@ int fcgi_accept_request(fcgi_request *req)
 					socklen_t len = sizeof(sa);
 
 					fpm_request_accepting();
-
+					//请求锁
 					FCGI_LOCK(req->listen_socket);
 					req->fd = accept(listen_socket, (struct sockaddr *)&sa, &len);
+					//释放锁
 					FCGI_UNLOCK(req->listen_socket);
 
 					client_sa = sa;
+					//判断当前fastcgi客户端是否允许访问
 					if (sa.sa.sa_family == AF_INET && req->fd >= 0 && allowed_clients) {
 						int n = 0;
 						int allowed = 0;

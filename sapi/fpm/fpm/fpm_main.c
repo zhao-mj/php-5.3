@@ -1869,13 +1869,14 @@ consult the installation file that came with this distribution, or visit \n\
 	fcgi_init_request(&request, fcgi_fd);
 
 	zend_first_try {
+		//获取客户端请求
 		while (fcgi_accept_request(&request) >= 0) {
 			request_body_fd = -1;
 			SG(server_context) = (void *) &request;
 			init_request_info(TSRMLS_C);
 			CG(interactive) = 0;
 			char *primary_script = NULL;
-
+			//请求头信息
 			fpm_request_info();
 
 			/* request startup only after we've done all we can to

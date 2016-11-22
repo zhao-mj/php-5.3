@@ -492,7 +492,7 @@ void fpm_pctl_perform_idle_server_maintenance_heartbeat(struct fpm_event_s *ev, 
 	fpm_event_add(&heartbeat, FPM_IDLE_SERVER_MAINTENANCE_HEARTBEAT);
 }
 /* }}} */
-
+//接受的时候fork进程
 void fpm_pctl_on_socket_accept(struct fpm_event_s *ev, short which, void *arg) /* {{{ */
 {
 	struct fpm_worker_pool_s *wp = (struct fpm_worker_pool_s *)arg;
@@ -508,7 +508,7 @@ void fpm_pctl_on_socket_accept(struct fpm_event_s *ev, short which, void *arg) /
 	wp->socket_event_set = 0;
 
 /*	zlog(ZLOG_DEBUG, "[pool %s] heartbeat running_children=%d", wp->config->name, wp->running_children);*/
-
+	//当前运行的进程数>最大进程数
 	if (wp->running_children >= wp->config->pm_max_children) {
 		if (!wp->warn_max_children) {
 			fpm_scoreboard_update(0, 0, 0, 0, 0, 1, FPM_SCOREBOARD_ACTION_INC, wp->scoreboard);

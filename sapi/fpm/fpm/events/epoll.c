@@ -140,6 +140,7 @@ static int fpm_event_epoll_wait(struct fpm_event_queue_s *queue, unsigned long i
 		}
 
 		/* fire the event */
+		//回调事件
 		fpm_event_fire((struct fpm_event_s *)epollfds[i].data.ptr);
 
 		/* sanity check */

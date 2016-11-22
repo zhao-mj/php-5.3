@@ -62,9 +62,9 @@ struct fpm_scoreboard_s {
 	int lq;
 	int lq_max;
 	unsigned int lq_len;
-	unsigned int nprocs;
-	int free_proc;
-	struct fpm_scoreboard_proc_s *procs[];
+	unsigned int nprocs; //procs总数
+	int free_proc; //下一个空闲的slot
+	struct fpm_scoreboard_proc_s *procs[]; //节点列表
 };
 
 int fpm_scoreboard_init_main();

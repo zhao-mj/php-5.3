@@ -406,6 +406,7 @@ int fpm_children_make(struct fpm_worker_pool_s *wp, int in_event_loop, int nb_to
 			case 0 :
 				fpm_child_resources_use(child);
 				fpm_globals.is_child = 1;
+				//子进程初始化
 				fpm_child_init(wp);
 				return 0;
 

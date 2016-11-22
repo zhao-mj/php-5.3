@@ -324,7 +324,7 @@ int fpm_event_init_main() /* {{{ */
 			max += (wp->config->pm_max_children * 2);
 		}
 	}
-
+	//初始化事件驱动
 	if (module->init(max) < 0) {
 		zlog(ZLOG_ERROR, "Unable to initialize the event module %s", module->name);
 		return -1;
@@ -344,10 +344,11 @@ void fpm_event_loop(int err) /* {{{ */
 	static struct fpm_event_s signal_fd_event;
 
 	/* sanity check */
+	//非主进程 则跳过
 	if (fpm_globals.parent_pid != getpid()) {
 		return;
 	}
-
+	//注册信号
 	fpm_event_set(&signal_fd_event, fpm_signals_get_fd(), FPM_EV_READ, &fpm_got_signal, NULL);
 	fpm_event_add(&signal_fd_event, 0);
 
@@ -403,6 +404,8 @@ void fpm_event_loop(int err) /* {{{ */
 		ret = module->wait(fpm_event_queue_fd, timeout);
 
 		/* is a child, nothing to do here */
+		//子进程退出循环，主进程监控事件
+		// PM = PM_STYLE_DYNAMIC 模式，根据请求分配进程数
 		if (ret == -2) {
 			return;
 		}

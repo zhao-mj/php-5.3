@@ -1173,15 +1173,15 @@ static int fpm_conf_post_process(int force_daemon TSRMLS_DC) /* {{{ */
 	if (0 > fpm_stdio_open_error_log(0)) {
 		return -1;
 	}
-
+	//初始化log模块
 	if (0 > fpm_log_open(0)) {
 		return -1;
 	}
-
+	//初始化事件驱动模块
 	if (0 > fpm_event_pre_init(fpm_global_config.events_mechanism)) {
 		return -1;
 	}
-
+	//初始化进程池
 	if (0 > fpm_conf_process_all_pools()) {
 		return -1;
 	}
