@@ -221,7 +221,7 @@ int fcgi_init(void)
 			return 1;
 		}
 #else
-		//设置信号
+		//linux环境设置信号
 		fcgi_setup_signals();
 		return 1;
 #endif

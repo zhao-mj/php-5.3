@@ -859,6 +859,11 @@ static int sapi_cgi_deactivate(TSRMLS_D)
 
 static int php_cgi_startup(sapi_module_struct *sapi_module)
 {
+	//php_module_startup cgi启动 代码位于 main/main.c
+	//1.加载php配置，
+	//2.加载php模块
+	//3.设置禁用函数及类库
+
 	if (php_module_startup(sapi_module, &cgi_module_entry, 1) == FAILURE) {
 		return FAILURE;
 	}
@@ -1575,6 +1580,7 @@ int main(int argc, char *argv[])
 	int php_information = 0;
 	int php_allow_to_run_as_root = 0;
 	//fastcgi初始化操作 代码位于fpm.c
+	//初始化进程信号
 	fcgi_init();
 
 #ifdef HAVE_SIGNAL_H
@@ -1593,6 +1599,7 @@ int main(int argc, char *argv[])
 	tsrm_ls = ts_resource(0);
 #endif
 	//代码位于 main/SAPI.C
+	//注册sapi全局变量
 	sapi_startup(&cgi_sapi_module);
 	cgi_sapi_module.php_ini_path_override = NULL;
 
@@ -1765,6 +1772,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* No other args are permitted here as there is not interactive mode */
+	//
 	if (argc != php_optind) {
 		cgi_sapi_module.startup(&cgi_sapi_module);
 		php_output_startup();

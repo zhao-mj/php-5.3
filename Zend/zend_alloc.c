@@ -480,6 +480,7 @@ static unsigned int _zend_mm_cookie = 0;
 #define ZEND_MM_SEG_SIZE   (256 * 1024)
 
 /* Reserved space for error reporting in case of memory overflow */
+//8KB
 #define ZEND_MM_RESERVE_SIZE            (8*1024)
 
 #ifdef _WIN64
@@ -1058,6 +1059,7 @@ ZEND_API zend_mm_heap *zend_mm_startup_ex(const zend_mm_mem_handlers *handlers, 
 #endif
 		exit(255);
 	}
+	//初始化storage
 	storage = handlers->init(params);
 	if (!storage) {
 		fprintf(stderr, "Cannot initialize zend_mm storage [%s]\n", handlers->name);
@@ -1077,7 +1079,9 @@ ZEND_API zend_mm_heap *zend_mm_startup_ex(const zend_mm_mem_handlers *handlers, 
 #endif
 		exit(255);
 	}
+
 	heap->storage = storage;
+	//内存块大小
 	heap->block_size = block_size;
 	heap->compact_size = 0;
 	heap->segments_list = NULL;

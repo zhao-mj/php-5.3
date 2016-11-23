@@ -606,7 +606,7 @@ int zend_startup(zend_utility_functions *utility_functions, char **extensions TS
 	extern zend_ini_scanner_globals ini_scanner_globals;
 	extern zend_php_scanner_globals language_scanner_globals;
 #endif
-
+	//内存管理
 	start_memory_manager(TSRMLS_C);
 
 #if defined(__FreeBSD__) || defined(__DragonFly__)
@@ -615,6 +615,7 @@ int zend_startup(zend_utility_functions *utility_functions, char **extensions TS
 #endif
 
 	zend_startup_strtod();
+	//zend_extensions.c
 	zend_startup_extensions_mechanism();
 
 	/* Set up utility functions and values */

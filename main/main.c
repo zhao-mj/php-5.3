@@ -175,6 +175,7 @@ static PHP_INI_MH(OnChangeMemoryLimit)
 	} else {
 		PG(memory_limit) = 1<<30;		/* effectively, no limit */
 	}
+	//设置脚本占用的内存大小 zend/zend_alloc.c
 	return zend_set_memory_limit(PG(memory_limit));
 }
 /* }}} */
@@ -1898,6 +1899,7 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	zuf.vspprintf_function = vspprintf;
 	zuf.getenv_function = sapi_getenv;
 	zuf.resolve_path_function = php_resolve_path_for_zend;
+	//zend环境初始化 Zend/zend.c 初始化栈内存
 	zend_startup(&zuf, NULL TSRMLS_CC);
 
 #ifdef ZTS
@@ -2022,6 +2024,7 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	/* this will read in php.ini, set up the configuration parameters,
 	   load zend extensions and register php function extensions
 	   to be loaded later */
+	//加载配置	php_ini.h
 	if (php_init_config(TSRMLS_C) == FAILURE) {
 		return FAILURE;
 	}
@@ -2055,9 +2058,10 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 
 	zuv.html_errors = 1;
 	zuv.import_use_extension = ".php";
+	//注册全局遍历 (_GET,_POST,_COOKIE) main/php_variables.c
 	php_startup_auto_globals(TSRMLS_C);
 	zend_set_utility_values(&zuv);
-	//注册请求数据处理函数
+	//注册请求数据处理函数 main/php_content_types.c
 	php_startup_sapi_content_types(TSRMLS_C);
 
 	/* startup extensions staticly compiled in */
@@ -2093,7 +2097,9 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	}
 	
 	/* disable certain classes and functions as requested by php.ini */
+	//禁止调用的函数
 	php_disable_functions(TSRMLS_C);
+	//禁止调用的类库
 	php_disable_classes(TSRMLS_C);
 
 	/* make core report what it should */
@@ -2210,6 +2216,7 @@ void php_module_shutdown(TSRMLS_D)
 	php_shutdown_config();
 
 #ifndef ZTS
+	//回收ini配置
 	zend_ini_shutdown(TSRMLS_C);
 	shutdown_memory_manager(CG(unclean_shutdown), 1 TSRMLS_CC);
 	core_globals_dtor(&core_globals TSRMLS_CC);
@@ -2318,6 +2325,7 @@ PHPAPI int php_execute_script(zend_file_handle *primary_file TSRMLS_DC)
 #ifdef PHP_WIN32
 			zend_unset_timeout(TSRMLS_C);
 #endif
+			//设置超时时间
 			zend_set_timeout(INI_INT("max_execution_time"), 0);
 		}
 		retval = (zend_execute_scripts(ZEND_REQUIRE TSRMLS_CC, NULL, 3, prepend_file_p, primary_file, append_file_p) == SUCCESS);

@@ -5459,6 +5459,7 @@ PHP_FUNCTION(ini_set)
 	}
 
 	/* checks that ensure the user does not overwrite certain ini settings when safe_mode is enabled */
+	//安全模式下不能使用
 	if (PG(safe_mode)) {
 		if (!strncmp("max_execution_time", varname, sizeof("max_execution_time")) ||
 			!strncmp("memory_limit", varname, sizeof("memory_limit")) ||
@@ -5805,6 +5806,7 @@ PHP_FUNCTION(unregister_tick_function)
 
 /* {{{ proto bool is_uploaded_file(string path)
    Check if file was created by rfc1867 upload */
+//上传文件
 PHP_FUNCTION(is_uploaded_file)
 {
 	char *path;
@@ -5832,6 +5834,7 @@ PHP_FUNCTION(is_uploaded_file)
 
 /* {{{ proto bool move_uploaded_file(string path, string new_path)
    Move a file if and only if it was created by an upload */
+//上传目标文件位置
 PHP_FUNCTION(move_uploaded_file)
 {
 	char *path, *new_path;
@@ -5857,7 +5860,7 @@ PHP_FUNCTION(move_uploaded_file)
 	if (PG(safe_mode) && (!php_checkuid(new_path, NULL, CHECKUID_CHECK_FILE_AND_DIR))) {
 		RETURN_FALSE;
 	}
-
+	//代码位于 main/fopen_wrappers.c
 	if (php_check_open_basedir(new_path TSRMLS_CC)) {
 		RETURN_FALSE;
 	}
