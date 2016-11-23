@@ -1916,7 +1916,7 @@ consult the installation file that came with this distribution, or visit \n\
 				} zend_end_try();
 				goto fastcgi_request_done;
 			}
-
+			//禁止访问扩展文件
 			if (fpm_php_limit_extensions(SG(request_info).path_translated)) {
 				SG(sapi_headers).http_response_code = 403;
 				PUTS("Access denied.\n");
@@ -1930,6 +1930,7 @@ consult the installation file that came with this distribution, or visit \n\
 			primary_script = estrdup(SG(request_info).path_translated);
 
 			/* path_translated exists, we can continue ! */
+			//打开脚本
 			if (php_fopen_primary_script(&file_handle TSRMLS_CC) == FAILURE) {
 				zend_try {
 					zlog(ZLOG_ERROR, "Unable to open primary script: %s (%s)", primary_script, strerror(errno));
@@ -1978,7 +1979,7 @@ fastcgi_request_done:
 
 			STR_FREE(SG(request_info).path_translated);
 			SG(request_info).path_translated = NULL;
-
+			//请求结束阶段
 			php_request_shutdown((void *) 0);
 
 			requests++;
@@ -1988,6 +1989,7 @@ fastcgi_request_done:
 			}
 			/* end of fastcgi loop */
 		}
+		//关闭cgi
 		fcgi_shutdown();
 
 		if (cgi_sapi_module.php_ini_path_override) {
