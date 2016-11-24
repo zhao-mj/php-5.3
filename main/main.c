@@ -114,6 +114,7 @@
 #endif
 /* }}} */
 
+//main/internal_functions.c
 PHPAPI int (*php_register_internal_extensions_func)(TSRMLS_D) = php_register_internal_extensions;
 
 #ifndef ZTS
@@ -1780,6 +1781,7 @@ int php_register_extensions(zend_module_entry **ptr, int count TSRMLS_DC)
 
 	while (ptr < end) {
 		if (*ptr) {
+			//zend_API.c
 			if (zend_register_internal_module(*ptr TSRMLS_CC)==NULL) {
 				return FAILURE;
 			}
@@ -2024,7 +2026,7 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	/* this will read in php.ini, set up the configuration parameters,
 	   load zend extensions and register php function extensions
 	   to be loaded later */
-	//加载配置	php_ini.h
+	//解析php.ini配置，提取php模块和zend扩展列表
 	if (php_init_config(TSRMLS_C) == FAILURE) {
 		return FAILURE;
 	}
@@ -2065,13 +2067,14 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	php_startup_sapi_content_types(TSRMLS_C);
 
 	/* startup extensions staticly compiled in */
+	//注册PHP基本模块
 	if (php_register_internal_extensions_func(TSRMLS_C) == FAILURE) {
 		php_printf("Unable to start builtin modules\n");
 		return FAILURE;
 	}
 
 	/* start additional PHP extensions */
-	//加载php扩展
+	//加载额外PHP模块(fastcgi)
 	php_register_extensions(&additional_modules, num_additional_modules TSRMLS_CC);
 
 	/* load and startup extensions compiled as shared objects (aka DLLs)
@@ -2081,13 +2084,17 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	   which is always an internal extension and to be initialized
 	   ahead of all other internals
 	 */
+	//注册扩展PHP模块
 	php_ini_register_extensions(TSRMLS_C);
+	//启动php模块 Zend/zend_API.c
 	zend_startup_modules(TSRMLS_C);
 
 	/* start Zend extensions */
+	//启动zend扩展 Zend/zend_extensions.c
 	zend_startup_extensions();
 
 	/* register additional functions */
+	//fastcgi添加的函数
 	if (sapi_module.additional_functions) {
 		if (zend_hash_find(&module_registry, "standard", sizeof("standard"), (void**)&module)==SUCCESS) {
 			EG(current_module) = module;

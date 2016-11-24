@@ -228,9 +228,11 @@ static void php_ini_parser_cb(zval *arg1, zval *arg2, zval *arg3, int callback_t
 
 				/* PHP and Zend extensions are not added into configuration hash! */
 				if (!is_special_section && !strcasecmp(Z_STRVAL_P(arg1), PHP_EXTENSION_TOKEN)) { /* load PHP extension */
+					//php扩展 extension = XXX
 					extension_name = estrndup(Z_STRVAL_P(arg2), Z_STRLEN_P(arg2));
 					zend_llist_add_element(&extension_lists.functions, &extension_name);
 				} else if (!is_special_section && !strcasecmp(Z_STRVAL_P(arg1), ZEND_EXTENSION_TOKEN)) { /* load Zend extension */
+					//zend引擎扩展
 					extension_name = estrndup(Z_STRVAL_P(arg2), Z_STRLEN_P(arg2));
 					zend_llist_add_element(&extension_lists.engine, &extension_name);
 
@@ -747,7 +749,9 @@ int php_shutdown_config(void)
  */
 void php_ini_register_extensions(TSRMLS_D)
 {
+	//加载zend引擎
 	zend_llist_apply(&extension_lists.engine, php_load_zend_extension_cb TSRMLS_CC);
+	//加载php模块
 	zend_llist_apply(&extension_lists.functions, php_load_php_extension_cb TSRMLS_CC);
 
 	zend_llist_destroy(&extension_lists.engine);

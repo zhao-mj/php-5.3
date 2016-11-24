@@ -94,8 +94,8 @@ struct _zend_compiler_globals {
 
 	zend_op_array *active_op_array;
 
-	HashTable *function_table;	/* function symbol table */
-	HashTable *class_table;		/* class table */
+	HashTable *function_table;	//函数符号表
+	HashTable *class_table;		//类库符号表
 
 	HashTable filenames_table;
 

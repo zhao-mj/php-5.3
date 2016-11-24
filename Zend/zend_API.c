@@ -1572,13 +1572,14 @@ ZEND_API int zend_startup_module_ex(zend_module_entry *module TSRMLS_DC) /* {{{ 
 {
 	int name_len;
 	char *lcname;
-
+	//已启动过则return
 	if (module->module_started) {
 		return SUCCESS;
 	}
 	module->module_started = 1;
 
 	/* Check module dependencies */
+	//模块依赖
 	if (module->deps) {
 		const zend_module_dep *dep = module->deps;
 
@@ -1705,7 +1706,7 @@ ZEND_API zend_module_entry* zend_register_module_ex(zend_module_entry *module TS
 
 	name_len = strlen(module->name);
 	lcname = zend_str_tolower_dup(module->name, name_len);
-
+	//保存模块信息
 	if (zend_hash_add(&module_registry, lcname, name_len+1, (void *)module, sizeof(zend_module_entry), (void**)&module_ptr)==FAILURE) {
 		zend_error(E_CORE_WARNING, "Module '%s' already loaded", module->name);
 		efree(lcname);
@@ -1714,7 +1715,7 @@ ZEND_API zend_module_entry* zend_register_module_ex(zend_module_entry *module TS
 	efree(lcname);
 	module = module_ptr;
 	EG(current_module) = module;
-
+	//注册模块的函数，保存至function_table hash表中
 	if (module->functions && zend_register_functions(NULL, module->functions, NULL, module->type TSRMLS_CC)==FAILURE) {
 		EG(current_module) = NULL;
 		zend_error(E_CORE_WARNING,"%s: Unable to register functions, unable to load", module->name);
@@ -1729,6 +1730,7 @@ ZEND_API zend_module_entry* zend_register_module_ex(zend_module_entry *module TS
 ZEND_API zend_module_entry* zend_register_internal_module(zend_module_entry *module TSRMLS_DC) /* {{{ */
 {
 	module->module_number = zend_next_free_module();
+	//设置类型
 	module->type = MODULE_PERSISTENT;
 	return zend_register_module_ex(module TSRMLS_CC);
 }
@@ -1817,11 +1819,12 @@ ZEND_API int zend_register_functions(zend_class_entry *scope, const zend_functio
 	}
 
 	if (!target_function_table) {
+		//函数hash表
 		target_function_table = CG(function_table);
 	}
 	internal_function->type = ZEND_INTERNAL_FUNCTION;
 	internal_function->module = EG(current_module);
-
+	//类方法
 	if (scope) {
 		class_name_len = strlen(scope->name);
 		if ((lc_class_name = zend_memrchr(scope->name, '\\', class_name_len))) {
@@ -1899,6 +1902,7 @@ ZEND_API int zend_register_functions(zend_class_entry *scope, const zend_functio
 		}
 		fname_len = strlen(ptr->fname);
 		lowercase_name = zend_str_tolower_dup(ptr->fname, fname_len);
+		//注册function函数
 		if (zend_hash_add(target_function_table, lowercase_name, fname_len+1, &function, sizeof(zend_function), (void**)&reg_function) == FAILURE) {
 			unload=1;
 			efree(lowercase_name);

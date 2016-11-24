@@ -110,7 +110,7 @@ PHPAPI int php_load_extension(char *filename, int type, int start_now TSRMLS_DC)
 	zend_module_entry *(*get_module)(void);
 	int error_type;
 	char *extension_dir;
-
+	//扩展路径
 	if (type == MODULE_PERSISTENT) {
 		extension_dir = INI_STR("extension_dir");
 	} else {
@@ -144,6 +144,7 @@ PHPAPI int php_load_extension(char *filename, int type, int start_now TSRMLS_DC)
 	}
 
 	/* load dynamic symbol */
+	//加载动态类库
 	handle = DL_LOAD(libpath);
 	if (!handle) {
 #if PHP_WIN32
@@ -162,13 +163,14 @@ PHPAPI int php_load_extension(char *filename, int type, int start_now TSRMLS_DC)
 		return FAILURE;
 	}
 	efree(libpath);
-
+	//zend/Zend_Api.h 
+	//获取类库的属性
 	get_module = (zend_module_entry *(*)(void)) DL_FETCH_SYMBOL(handle, "get_module");
 
 	/* Some OS prepend _ to symbol names while their dynamic linker
 	 * does not do that automatically. Thus we check manually for
 	 * _get_module. */
-
+	//如果有没有get_module，判断是否定义了_get_module函数
 	if (!get_module) {
 		get_module = (zend_module_entry *(*)(void)) DL_FETCH_SYMBOL(handle, "_get_module");
 	}
@@ -236,7 +238,7 @@ PHPAPI int php_load_extension(char *filename, int type, int start_now TSRMLS_DC)
 	module_entry->type = type;
 	module_entry->module_number = zend_next_free_module();
 	module_entry->handle = handle;
-
+	//注册接口
 	if ((module_entry = zend_register_module_ex(module_entry TSRMLS_CC)) == NULL) {
 		DL_UNLOAD(handle);
 		return FAILURE;

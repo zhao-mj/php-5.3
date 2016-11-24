@@ -59,6 +59,7 @@
 #include "php_ftok.h"
 #include "php_type.h"
 
+//代码位于 ext/standard/basic_functions.h
 #define phpext_standard_ptr basic_functions_module_ptr
 PHP_MINIT_FUNCTION(standard_filters);
 PHP_MSHUTDOWN_FUNCTION(standard_filters);
