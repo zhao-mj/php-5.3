@@ -110,6 +110,22 @@ typedef struct _zend_fcall_info_cache {
 #define ZEND_END_ARG_INFO()		};
 
 /* Name macros */
+/*
+动态定义php模块启动、关闭等操作函数 : 例如 static PHP_MINIT_FUNCTION(bz2) ,实际上定义了一个"zm_startup_bz2"函数
+
+example:
+#include<stdio.h>
+#define ZEND_MODULE_STARTUP_N(module)       zm_startup_##module
+#define ZEND_MODULE_STARTUP_D(module)        int ZEND_MODULE_STARTUP_N(module)(int type)
+#define PHP_MINIT_FUNCTION		ZEND_MODULE_STARTUP_D
+static PHP_MINIT_FUNCTION(tt){
+    printf("aaaa%d",type);
+}
+int main(void){
+    zm_startup_tt(123);
+    return 0;
+}
+*/
 #define ZEND_MODULE_STARTUP_N(module)       zm_startup_##module
 #define ZEND_MODULE_SHUTDOWN_N(module)		zm_shutdown_##module
 #define ZEND_MODULE_ACTIVATE_N(module)		zm_activate_##module
