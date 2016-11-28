@@ -148,6 +148,7 @@ static void sig_soft_quit(int signo) /* {{{ */
 	if (0 > socket(AF_UNIX, SOCK_STREAM, 0)) {
 		zlog(ZLOG_WARNING, "failed to create a new socket");
 	}
+	//“软”退出
 	fpm_php_soft_quit();
 	errno = saved_errno;
 }

@@ -371,6 +371,7 @@ SAPI_API void sapi_activate(TSRMLS_D)
 		if ( SG(request_info).request_method) {
 			if(!strcmp(SG(request_info).request_method, "POST")
 			   && (SG(request_info).content_type)) {
+			   	//POST请求
 				/* HTTP POST -> may contain form data to be read into variables
 				   depending on content type given
 				*/
@@ -390,6 +391,7 @@ SAPI_API void sapi_activate(TSRMLS_D)
 		}
 
 		/* Cookies */
+		//读取cookie信息
 		SG(request_info).cookie_data = sapi_module.read_cookies(TSRMLS_C);
 		if (sapi_module.activate) {
 			sapi_module.activate(TSRMLS_C);

@@ -1889,6 +1889,7 @@ consult the installation file that came with this distribution, or visit \n\
 
 			/* request startup only after we've done all we can to
 			 *            get path_translated */
+			//获取请求头及cookie信息 main/main.c
 			if (php_request_startup(TSRMLS_C) == FAILURE) {
 				fcgi_finish_request(&request, 1);
 				SG(server_context) = NULL;
@@ -1930,7 +1931,7 @@ consult the installation file that came with this distribution, or visit \n\
 			primary_script = estrdup(SG(request_info).path_translated);
 
 			/* path_translated exists, we can continue ! */
-			//打开脚本
+			//打开脚本 main/fopen_wrappers.c
 			if (php_fopen_primary_script(&file_handle TSRMLS_CC) == FAILURE) {
 				zend_try {
 					zlog(ZLOG_ERROR, "Unable to open primary script: %s (%s)", primary_script, strerror(errno));

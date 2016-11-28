@@ -27,7 +27,9 @@
 /* {{{ php_post_entries[]
  */
 static sapi_post_entry php_post_entries[] = {
+	//form表单
 	{ DEFAULT_POST_CONTENT_TYPE, sizeof(DEFAULT_POST_CONTENT_TYPE)-1, sapi_read_standard_form_data,	php_std_post_handler },
+	//上传文件
 	{ MULTIPART_CONTENT_TYPE,    sizeof(MULTIPART_CONTENT_TYPE)-1,    NULL,                         rfc1867_post_handler },
 	{ NULL, 0, NULL, NULL }
 };
@@ -74,11 +76,11 @@ SAPI_API SAPI_POST_READER_FUNC(php_default_post_reader)
 //注册请求数据函数
 int php_startup_sapi_content_types(TSRMLS_D)
 {
-	//注册post处理函数
+	//注册post请求默认处理函数 
 	sapi_register_default_post_reader(php_default_post_reader);
 	//注册变量解析函数
 	sapi_register_treat_data(php_default_treat_data);
-	//输入过滤
+	//输入参数过滤
 	sapi_register_input_filter(php_default_input_filter, NULL);
 	return SUCCESS;
 }

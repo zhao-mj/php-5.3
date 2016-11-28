@@ -272,7 +272,7 @@ SAPI_API SAPI_POST_HANDLER_FUNC(php_std_post_handler)
 last_value:
 		if ((val = memchr(s, '=', (p - s)))) { /* have a value */
 			unsigned int val_len, new_val_len;
-
+			//表单input个数
 			if (++count > PG(max_input_vars)) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Input variables exceeded %ld. To increase the limit change max_input_vars in php.ini.", PG(max_input_vars));
 				return;

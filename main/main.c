@@ -1402,6 +1402,7 @@ static int php_start_sapi(TSRMLS_D)
 
 			zend_activate(TSRMLS_C);
 			zend_set_timeout(EG(timeout_seconds), 1);
+			//激活模块
 			zend_activate_modules(TSRMLS_C);
 			PG(modules_activated)=1;
 		} zend_catch {
@@ -1434,6 +1435,8 @@ int php_request_startup(TSRMLS_D)
 		PG(in_error_log) = 0;
 		PG(during_request_startup) = 1;
 
+		//启用输出模块
+		//output.c
 		php_output_activate(TSRMLS_C);
 
 		/* initialize global variables */
@@ -1494,12 +1497,13 @@ int php_request_startup(TSRMLS_D)
 #if PHP_SIGCHILD
 	signal(SIGCHLD, sigchld_handler);
 #endif
-
+	//启动sapi
 	if (php_start_sapi() == FAILURE) {
 		return FAILURE;
 	}
-
+	//启用输出模块
 	php_output_activate(TSRMLS_C);
+	//此处 获取请求数据及cookie信息 SAPI.C
 	sapi_activate(TSRMLS_C);
 	//初始化请求相关变量函数（main/php_variables.c）
 	php_hash_environment(TSRMLS_C);
