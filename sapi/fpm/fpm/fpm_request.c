@@ -81,6 +81,7 @@ void fpm_request_reading_headers() /* {{{ */
 	}
 
 	proc->request_stage = FPM_REQUEST_READING_HEADERS;
+	//记录当前时间
 	proc->tv = now;
 	proc->accepted = now;
 	proc->accepted_epoch = now_epoch;

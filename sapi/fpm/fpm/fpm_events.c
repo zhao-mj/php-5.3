@@ -358,6 +358,7 @@ void fpm_event_loop(int err) /* {{{ */
 	}
 
 	if (!err) {
+		//定时事件
 		fpm_pctl_perform_idle_server_maintenance_heartbeat(NULL, 0, NULL);
 
 		zlog(ZLOG_DEBUG, "%zu bytes have been reserved in SHM", fpm_shm_get_size_allocated());
@@ -381,6 +382,7 @@ void fpm_event_loop(int err) /* {{{ */
 		timerclear(&ms);
 
 		/* search in the timeout queue for the next timer to trigger */
+		//寻找下一个触发时间点
 		q = fpm_event_queue_timer;
 		while (q) {
 			if (!timerisset(&ms)) {
@@ -400,7 +402,6 @@ void fpm_event_loop(int err) /* {{{ */
 			timersub(&ms, &now, &tmp);
 			timeout = (tmp.tv_sec * 1000) + (tmp.tv_usec / 1000) + 1;
 		}
-
 		ret = module->wait(fpm_event_queue_fd, timeout);
 
 		/* is a child, nothing to do here */
@@ -420,12 +421,14 @@ void fpm_event_loop(int err) /* {{{ */
 			fpm_clock_get(&now);
 			if (q->ev) {
 				if (timercmp(&now, &q->ev->timeout, >) || timercmp(&now, &q->ev->timeout, ==)) {
+					//执行事件
 					fpm_event_fire(q->ev);
 					/* sanity check */
 					if (fpm_globals.parent_pid != getpid()) {
 						return;
 					}
 					if (q->ev->flags & FPM_EV_PERSIST) {
+						//设置下一次执行时间
 						fpm_event_set_timeout(q->ev, now);
 					} else { /* delete the event */
 						q2 = q;

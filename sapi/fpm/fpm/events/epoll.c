@@ -121,6 +121,9 @@ static int fpm_event_epoll_wait(struct fpm_event_queue_s *queue, unsigned long i
 	memset(epollfds, 0, sizeof(struct epoll_event) * nepollfds);
 
 	/* wait for inconming event or timeout */
+	//timeout = 0 表示立刻返回
+	//timeout = -1 标识一直等待
+	//timeout>0 超时时间
 	ret = epoll_wait(epollfd, epollfds, nepollfds, timeout);
 	if (ret == -1) {
 

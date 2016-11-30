@@ -356,6 +356,7 @@ static void fpm_pctl_perform_idle_server_maintenance(struct timeval *now) /* {{{
 		fpm_scoreboard_update(idle, active, cur_lq, -1, -1, -1, FPM_SCOREBOARD_ACTION_SET, wp->scoreboard);
 
 		/* this is specific to PM_STYLE_ONDEMAND */
+		//ONDEMAND模式 
 		if (wp->config->pm == PM_STYLE_ONDEMAND) {
 			struct timeval last, now;
 
@@ -365,6 +366,7 @@ static void fpm_pctl_perform_idle_server_maintenance(struct timeval *now) /* {{{
 
 			fpm_request_last_activity(last_idle_child, &last);
 			fpm_clock_get(&now);
+			//accept操作超出idle时间,则关闭子进程
 			if (last.tv_sec < now.tv_sec - wp->config->pm_process_idle_timeout) {
 				last_idle_child->idle_kill = 1;
 				fpm_pctl_kill(last_idle_child->pid, FPM_PCTL_QUIT);
@@ -385,8 +387,9 @@ static void fpm_pctl_perform_idle_server_maintenance(struct timeval *now) /* {{{
 			wp->idle_spawn_rate = 1;
 			continue;
 		}
-
+		//只有idle<最小分配数 才执行
 		if (idle < wp->config->pm_min_spare_servers) {
+			//运行的子进程数>最大子进程数
 			if (wp->running_children >= wp->config->pm_max_children) {
 				if (!wp->warn_max_children) {
 					fpm_scoreboard_update(0, 0, 0, 0, 0, 1, FPM_SCOREBOARD_ACTION_INC, wp->scoreboard);
@@ -416,7 +419,7 @@ static void fpm_pctl_perform_idle_server_maintenance(struct timeval *now) /* {{{
 				continue;
 			}
 			wp->warn_max_children = 0;
-
+			//分配worker进程
 			fpm_children_make(wp, 1, children_to_fork, 1);
 
 			/* if it's a child, stop here without creating the next event
