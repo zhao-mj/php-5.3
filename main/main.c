@@ -1656,6 +1656,7 @@ void php_request_shutdown(void *dummy)
 	}
 
 	/* 6. Destroy super-globals */
+	//回收$_GET、$_POST、$_REQUEST等参数
 	zend_try {
 		int i;
 

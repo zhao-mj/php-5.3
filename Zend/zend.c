@@ -693,7 +693,7 @@ int zend_startup(zend_utility_functions *utility_functions, char **extensions TS
 	EG(user_error_handler) = NULL;
 	EG(user_exception_handler) = NULL;
 #endif
-
+	//注册zend基本函数
 	zend_startup_builtin_functions(TSRMLS_C);
 	zend_register_standard_constants(TSRMLS_C);
 	zend_register_auto_global("GLOBALS", sizeof("GLOBALS") - 1, NULL TSRMLS_CC);
@@ -1249,6 +1249,16 @@ ZEND_API int zend_execute_scripts(int type TSRMLS_DC, zval **retval, int file_co
 		if (!file_handle) {
 			continue;
 		}
+		//将PHP脚本生成opcodes(apc扩展缓存的原理就是重写了zend_compile_file功能)
+		//例如:
+		// old_compile_file = zend_compile_file
+		// zend_compile_file = my_compile_file
+		// static zend_op_array* my_compile_file(zend_file_handle* h, int type TSRMLS_DC)
+		// {
+		//      //.....	
+		//      return old_compile_file(h, type TSRMLS_CC);
+		// }
+
 		EG(active_op_array) = zend_compile_file(file_handle, type TSRMLS_CC);
 		if (file_handle->opened_path) {
 			int dummy = 1;
@@ -1257,6 +1267,7 @@ ZEND_API int zend_execute_scripts(int type TSRMLS_DC, zval **retval, int file_co
 		zend_destroy_file_handle(file_handle TSRMLS_CC);
 		if (EG(active_op_array)) {
 			EG(return_value_ptr_ptr) = retval ? retval : NULL;
+			//执行opcodes
 			zend_execute(EG(active_op_array) TSRMLS_CC);
 			zend_exception_restore(TSRMLS_C);
 			if (EG(exception)) {

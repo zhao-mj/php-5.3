@@ -256,17 +256,20 @@ ZEND_API int _zend_hash_add_or_update(HashTable *ht, const char *arKey, uint nKe
 	p->nKeyLength = nKeyLength;
 	INIT_DATA(ht, p, pData, nDataSize);
 	p->h = h;
+	//同一槽点链表结构
 	CONNECT_TO_BUCKET_DLLIST(p, ht->arBuckets[nIndex]);
 	if (pDest) {
 		*pDest = p->pData;
 	}
 
 	HANDLE_BLOCK_INTERRUPTIONS();
+	//线性链表设置
 	CONNECT_TO_GLOBAL_DLLIST(p, ht);
 	ht->arBuckets[nIndex] = p;
 	HANDLE_UNBLOCK_INTERRUPTIONS();
 
 	ht->nNumOfElements++;
+	//扩充hash表大小
 	ZEND_HASH_IF_FULL_DO_RESIZE(ht);		/* If the Hash table is full, resize it */
 	return SUCCESS;
 }
@@ -429,6 +432,7 @@ static int zend_hash_do_resize(HashTable *ht)
 			ht->arBuckets = t;
 			ht->nTableSize = (ht->nTableSize << 1);
 			ht->nTableMask = ht->nTableSize - 1;
+			//刷新hash表
 			zend_hash_rehash(ht);
 			HANDLE_UNBLOCK_INTERRUPTIONS();
 			return SUCCESS;
@@ -437,7 +441,7 @@ static int zend_hash_do_resize(HashTable *ht)
 	}
 	return SUCCESS;
 }
-
+//刷新hash表
 ZEND_API int zend_hash_rehash(HashTable *ht)
 {
 	Bucket *p;
@@ -448,6 +452,7 @@ ZEND_API int zend_hash_rehash(HashTable *ht)
 	memset(ht->arBuckets, 0, ht->nTableSize * sizeof(Bucket *));
 	p = ht->pListHead;
 	while (p != NULL) {
+		//hash码发生变化
 		nIndex = p->h & ht->nTableMask;
 		CONNECT_TO_BUCKET_DLLIST(p, ht->arBuckets[nIndex]);
 		ht->arBuckets[nIndex] = p;

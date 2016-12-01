@@ -180,6 +180,7 @@ struct _zend_executor_globals {
 	zend_op **opline_ptr;
 
 	HashTable *active_symbol_table;
+	//变量符号表
 	HashTable symbol_table;		/* main symbol table */
 
 	HashTable included_files;	/* files already included */
@@ -191,8 +192,9 @@ struct _zend_executor_globals {
 	int exit_status;
 
 	zend_op_array *active_op_array;
-
+	//函数符号表
 	HashTable *function_table;	/* function symbol table */
+	//类库符号表
 	HashTable *class_table;		/* class table */
 	HashTable *zend_constants;	/* constants table */
 
