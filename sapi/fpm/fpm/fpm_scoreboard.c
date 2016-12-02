@@ -303,11 +303,12 @@ int fpm_scoreboard_proc_alloc(struct fpm_scoreboard_s *scoreboard, int *child_in
 		zlog(ZLOG_ERROR, "[pool %s] no free scoreboard slot", scoreboard->pool);
 		return -1;
 	}
-
+	//打上“使用”标记
 	scoreboard->procs[i]->used = 1;
 	*child_index = i;
 
 	/* supposed next slot is free */
+	//重置下一个空闲的下标
 	if (i + 1 >= scoreboard->nprocs) {
 		scoreboard->free_proc = 0;
 	} else {
