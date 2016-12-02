@@ -1278,6 +1278,7 @@ static void fpm_conf_ini_parser_section(zval *section, void *arg TSRMLS_DC) /* {
 	int *error = (int *)arg;
 
 	/* switch to global conf */
+	//非[global]节点
 	if (!strcasecmp(Z_STRVAL_P(section), "global")) {
 		current_wp = NULL;
 		return;
@@ -1286,6 +1287,7 @@ static void fpm_conf_ini_parser_section(zval *section, void *arg TSRMLS_DC) /* {
 	for (wp = fpm_worker_all_pools; wp; wp = wp->next) {
 		if (!wp->config) continue;
 		if (!wp->config->name) continue;
+		//如果已设置，则return
 		if (!strcasecmp(wp->config->name, Z_STRVAL_P(section))) {
 			/* Found a wp with the same name. Bring it back */
 			current_wp = wp;
@@ -1332,9 +1334,11 @@ static void fpm_conf_ini_parser_entry(zval *name, zval *value, void *arg TSRMLS_
 	}
 
 	if (!current_wp) { /* we are in the global section */
+		//[global]配置
 		parser = ini_fpm_global_options;
 		config = &fpm_global_config;
 	} else {
+		//[www]配置
 		parser = ini_fpm_pool_options;
 		config = current_wp->config;
 	}
@@ -1430,6 +1434,11 @@ static void fpm_conf_ini_parser(zval *arg1, zval *arg2, zval *arg3, int callback
 	error = (int *)arg;
 	if (*error) return; /* We got already an error. Switch to the end. */
 
+	//
+	//#define ZEND_INI_PARSER_ENTRY     1 /* Normal entry: foo = bar */
+	//#define ZEND_INI_PARSER_SECTION	  2 /* Section: [foobar] */
+	//#define ZEND_INI_PARSER_POP_ENTRY 3 /* Offset entry: foo[] = bar */
+	//
 	switch(callback_type) {
 		case ZEND_INI_PARSER_ENTRY:
 			fpm_conf_ini_parser_entry(arg1, arg2, error TSRMLS_CC);

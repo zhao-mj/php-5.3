@@ -60,6 +60,7 @@ int fpm_init(int argc, char **argv, char *config, char *prefix, char *pid, int t
 	//fpm_pctl_init_main() fpm_process_ctrl.c 
 
 	//fpm_signals_init_main()设置信号
+	//fpm_sockets_init_main() 创建socket
 	if (0 > fpm_php_init_main()           ||
 	    0 > fpm_stdio_init_main()         ||
 	    0 > fpm_conf_init_main(test_conf, force_daemon) ||
@@ -124,6 +125,8 @@ run_child: /* only workers reach this point */
 	fpm_cleanups_run(FPM_CLEANUP_CHILD);
 
 	*max_requests = fpm_globals.max_requests;
+	//此处 fpm_globals.listening_socket = 0 对应的是标准输入设备
+	//fork子进程初始化时，会在fpm_stdio_init_child函数内部进行复制
 	return fpm_globals.listening_socket;
 }
 /* }}} */

@@ -70,6 +70,7 @@ static void fpm_got_signal(struct fpm_event_s *ev, short which, void *arg) /* {{
 		switch (c) {
 			case 'C' :                  /* SIGCHLD */
 				zlog(ZLOG_DEBUG, "received SIGCHLD");
+				//监听子进程信号 fpm/fpm_children.c
 				fpm_children_bury();
 				break;
 			case 'I' :                  /* SIGINT  */
