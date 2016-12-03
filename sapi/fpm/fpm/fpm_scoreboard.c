@@ -51,7 +51,7 @@ int fpm_scoreboard_init_main() /* {{{ */
 			zlog(ZLOG_ERROR, "[pool %s] Unable to create scoreboard SHM because it already exists", wp->config->name);
 			return -1;
 		}
-
+		//为scoreboard分配空间，空间的大小根据 wp->config->pm_max_children值而定
 		wp->scoreboard = fpm_shm_alloc(sizeof(struct fpm_scoreboard_s) + (wp->config->pm_max_children - 1) * sizeof(struct fpm_scoreboard_proc_s *));
 		if (!wp->scoreboard) {
 			return -1;
@@ -204,7 +204,7 @@ struct fpm_scoreboard_proc_s *fpm_scoreboard_proc_acquire(struct fpm_scoreboard_
 	if (!proc) {
 		return NULL;
 	}
-
+	//请求锁
 	if (!fpm_spinlock(&proc->lock, nohang)) {
 		return NULL;
 	}
@@ -212,7 +212,7 @@ struct fpm_scoreboard_proc_s *fpm_scoreboard_proc_acquire(struct fpm_scoreboard_
 	return proc;
 }
 /* }}} */
-
+//释放对象锁
 void fpm_scoreboard_proc_release(struct fpm_scoreboard_proc_s *proc) /* {{{ */
 {
 	if (!proc) {
@@ -308,7 +308,7 @@ int fpm_scoreboard_proc_alloc(struct fpm_scoreboard_s *scoreboard, int *child_in
 	*child_index = i;
 
 	/* supposed next slot is free */
-	//重置下一个空闲的下标
+	//重置寻找下一个空闲单元的起始下标
 	if (i + 1 >= scoreboard->nprocs) {
 		scoreboard->free_proc = 0;
 	} else {

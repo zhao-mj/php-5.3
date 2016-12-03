@@ -212,7 +212,7 @@ static int fpm_sockets_new_listening_socket(struct fpm_worker_pool_s *wp, struct
 			}
 		}
 	}
-
+	//wp->config->listen_backlog : 监听socket队列大小（listen queue）
 	if (0 > listen(sock, wp->config->listen_backlog)) {
 		zlog(ZLOG_SYSERROR, "failed to listen to address '%s'", wp->config->listen_address);
 		close(sock);
@@ -389,7 +389,7 @@ int fpm_sockets_init_main() /* {{{ */
 	return 0;
 }
 /* }}} */
-
+//fpm_socket_get_listening_queue获取listen queue(accept操作)等待处理的请求
 #if HAVE_FPM_LQ
 
 #ifdef HAVE_LQ_TCP_INFO
@@ -412,6 +412,7 @@ int fpm_socket_get_listening_queue(int sock, unsigned *cur_lq, unsigned *max_lq)
 	}
 
 	if (cur_lq) {
+		//获取socket队列中的请求
 		*cur_lq = info.tcpi_unacked;
 	}
 

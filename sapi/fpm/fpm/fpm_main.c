@@ -1902,7 +1902,7 @@ consult the installation file that came with this distribution, or visit \n\
 			if (!SG(request_info).request_method) {
 				goto fastcgi_request_done;
 			}
-
+			//fpm worker状态访问
 			if (fpm_status_handle_request(TSRMLS_C)) {
 				goto fastcgi_request_done;
 			}

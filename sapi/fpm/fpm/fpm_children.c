@@ -317,6 +317,7 @@ static struct fpm_child_s *fpm_resources_prepare(struct fpm_worker_pool_s *wp) /
 		return 0;
 	}
 	//从请求管理池取一个空闲的管理对象
+	//此时 c->scoreboard_i=-1
 	if (0 > fpm_scoreboard_proc_alloc(wp->scoreboard, &c->scoreboard_i)) {
 		fpm_stdio_discard_pipes(c);
 		fpm_child_free(c);

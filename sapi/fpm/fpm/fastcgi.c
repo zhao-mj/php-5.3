@@ -889,6 +889,7 @@ int fcgi_accept_request(fcgi_request *req)
 		} else if (in_shutdown) {
 			return -1;
 		}
+		//读取fastcgi请求信息
 		if (fcgi_read_request(req)) {
 #ifdef _WIN32
 			if (is_impersonate && !req->tcp) {

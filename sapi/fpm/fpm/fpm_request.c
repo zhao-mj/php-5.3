@@ -42,13 +42,13 @@ void fpm_request_accepting() /* {{{ */
 	struct timeval now;
 
 	fpm_clock_get(&now);
-
+	//获取统计对象
 	proc = fpm_scoreboard_proc_acquire(NULL, -1, 0);
 	if (proc == NULL) {
 		zlog(ZLOG_WARNING, "failed to acquire proc scoreboard");
 		return;
 	}
-
+	//接收客户端请求阶段
 	proc->request_stage = FPM_REQUEST_ACCEPTING;
 	proc->tv = now;
 	fpm_scoreboard_proc_release(proc);
