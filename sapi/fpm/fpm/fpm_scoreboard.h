@@ -54,6 +54,9 @@ struct fpm_scoreboard_s {
 	char pool[32];//实例名称 例如：[www]
 	int pm; //PM运行模式
 	time_t start_epoch; //开始时间
+	int idle;//procs的空闲数
+	int active;//procs的使用数
+	int active_max; //最大procs的使用数
 	unsigned long int requests;
 	unsigned int max_children_reached; //到达最大进程数次数
 	int lq; //当前listen queue的请求数(accept操作，可以过tcpi_unacked或getsocketopt获取)
