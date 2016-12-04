@@ -1323,7 +1323,7 @@ void execute_new_code(TSRMLS_D) /* {{{ */
 	CG(active_op_array)->start_op = CG(active_op_array)->opcodes+CG(active_op_array)->last;
 }
 /* }}} */
-
+//超时执行函数
 ZEND_API void zend_timeout(int dummy) /* {{{ */
 {
 	TSRMLS_FETCH();
@@ -1452,19 +1452,21 @@ void zend_shutdown_timeout_thread(void) /* {{{ */
 void zend_set_timeout(long seconds, int reset_signals) /* {{{ */
 {
 	TSRMLS_FETCH();
-
+	// 赋值
 	EG(timeout_seconds) = seconds;
 
 #ifdef ZEND_WIN32
 	if(!seconds) {
 		return;
 	}
+	// 启动定时器线程
 	if (timeout_thread_initialized == 0 && InterlockedIncrement(&timeout_thread_initialized) == 1) {
 		/* We start up this process-wide thread here and not in zend_startup(), because if Zend
 		 * is initialized inside a DllMain(), you're not supposed to start threads from it.
 		 */
 		zend_init_timeout_thread();
 	}
+	// 向线程发送WM_REGISTER_ZEND_TIMEOUT消息
 	PostThreadMessage(timeout_thread_id, WM_REGISTER_ZEND_TIMEOUT, (WPARAM) GetCurrentThreadId(), (LPARAM) seconds);
 #else
 #	ifdef HAVE_SETITIMER
@@ -1485,9 +1487,11 @@ void zend_set_timeout(long seconds, int reset_signals) /* {{{ */
 			sigaddset(&sigset, SIGALRM);
 		}
 #	else
+			// 设置定时器，seconds秒后会发送SIGPROF信号
 			setitimer(ITIMER_PROF, &t_r, NULL);
 		}
 		if(reset_signals) {
+			//设置SIGPROF信号对应的处理函数为zend_timeout
 			signal(SIGPROF, zend_timeout);
 			sigemptyset(&sigset);
 			sigaddset(&sigset, SIGPROF);
