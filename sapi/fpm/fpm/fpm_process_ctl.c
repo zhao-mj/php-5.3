@@ -297,9 +297,10 @@ static void fpm_pctl_check_request_timeout(struct timeval *now) /* {{{ */
 		int terminate_timeout = wp->config->request_terminate_timeout;
 		int slowlog_timeout = wp->config->request_slowlog_timeout;
 		struct fpm_child_s *child;
-
+		//是否开启慢日志
 		if (terminate_timeout || slowlog_timeout) {
 			for (child = wp->children; child; child = child->next) {
+				//判断是否超时 fpm_request.c
 				fpm_request_check_timed_out(child, now, terminate_timeout, slowlog_timeout);
 			}
 		}

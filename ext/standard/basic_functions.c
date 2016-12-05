@@ -5313,6 +5313,7 @@ PHP_FUNCTION(highlight_string)
 
 /* {{{ proto string ini_get(string varname)
    Get a configuration option */
+//获取配置
 PHP_FUNCTION(ini_get)
 {
 	char *varname, *str;

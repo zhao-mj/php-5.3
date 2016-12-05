@@ -249,7 +249,7 @@ void fpm_request_check_timed_out(struct fpm_child_s *child, struct timeval *now,
 		}
 	}
 #endif
-
+	//正在处理请求阶段
 	if (proc.request_stage > FPM_REQUEST_ACCEPTING && proc.request_stage < FPM_REQUEST_END) {
 		char purified_script_filename[sizeof(proc.script_filename)];
 		struct timeval tv;
@@ -257,6 +257,7 @@ void fpm_request_check_timed_out(struct fpm_child_s *child, struct timeval *now,
 		timersub(now, &proc.accepted, &tv);
 
 #if HAVE_FPM_TRACE
+		//zend执行阶段且超时,写入日志
 		if (child->slow_logged.tv_sec == 0 && slowlog_timeout &&
 				proc.request_stage == FPM_REQUEST_EXECUTING && tv.tv_sec >= slowlog_timeout) {
 			

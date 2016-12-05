@@ -144,6 +144,7 @@ static void sig_soft_quit(int signo) /* {{{ */
 	int saved_errno = errno;
 
 	/* closing fastcgi listening socket will force fcgi_accept() exit immediately */
+	//关闭监听的socket
 	close(0);
 	if (0 > socket(AF_UNIX, SOCK_STREAM, 0)) {
 		zlog(ZLOG_WARNING, "failed to create a new socket");

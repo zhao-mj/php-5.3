@@ -151,7 +151,7 @@ void fpm_php_trace(struct fpm_child_s *child) /* {{{ */
 	if (0 > fpm_trace_ready(child->pid)) {
 		goto done1;
 	}
-
+	//写入日志
 	if (0 > fpm_php_trace_dump(child, slowlog TSRMLS_CC)) {
 		fprintf(slowlog, "+++ dump failed\n");
 	}

@@ -250,7 +250,7 @@ ZEND_API int zend_alter_ini_entry(char *name, uint name_length, char *new_value,
 	return zend_alter_ini_entry_ex(name, name_length, new_value, new_value_length, modify_type, stage, 0 TSRMLS_CC);
 }
 /* }}} */
-
+//修改配置 例如:代码执行set_time_limit(XX)
 ZEND_API int zend_alter_ini_entry_ex(char *name, uint name_length, char *new_value, uint new_value_length, int modify_type, int stage, int force_change TSRMLS_DC) /* {{{ */
 {
 	zend_ini_entry *ini_entry;
@@ -279,6 +279,7 @@ ZEND_API int zend_alter_ini_entry_ex(char *name, uint name_length, char *new_val
 		ALLOC_HASHTABLE(EG(modified_ini_directives));
 		zend_hash_init(EG(modified_ini_directives), 8, NULL, NULL, 0);
 	}
+	//第一次修改记录修改的值
 	if (!modified) {
 		ini_entry->orig_value = ini_entry->value;
 		ini_entry->orig_value_length = ini_entry->value_length;
@@ -288,7 +289,7 @@ ZEND_API int zend_alter_ini_entry_ex(char *name, uint name_length, char *new_val
 	}
 
 	duplicate = estrndup(new_value, new_value_length);
-
+	//如果存在on_modify，则进行回调
 	if (!ini_entry->on_modify
 		|| ini_entry->on_modify(ini_entry, duplicate, new_value_length, ini_entry->mh_arg1, ini_entry->mh_arg2, ini_entry->mh_arg3, stage TSRMLS_CC) == SUCCESS) {
 		if (modified && ini_entry->orig_value != ini_entry->value) { /* we already changed the value, free the changed value */

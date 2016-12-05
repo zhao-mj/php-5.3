@@ -1327,7 +1327,7 @@ void execute_new_code(TSRMLS_D) /* {{{ */
 ZEND_API void zend_timeout(int dummy) /* {{{ */
 {
 	TSRMLS_FETCH();
-
+	//是否定义了超时回调函数
 	if (zend_on_timeout) {
 		zend_on_timeout(EG(timeout_seconds) TSRMLS_CC);
 	}

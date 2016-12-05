@@ -225,7 +225,7 @@ void fpm_children_bury() /* {{{ */
 		} else if (WIFSTOPPED(status)) {
 
 			zlog(ZLOG_NOTICE, "child %d stopped for tracing", (int) pid);
-
+			//回调 php_trace.c
 			if (child && child->tracer) {
 				child->tracer(child);
 			}
@@ -238,7 +238,7 @@ void fpm_children_bury() /* {{{ */
 			struct timeval tv1, tv2;
 
 			fpm_child_unlink(child);
-
+			//释放scoreboard
 			fpm_scoreboard_proc_free(wp->scoreboard, child->scoreboard_i);
 
 			fpm_clock_get(&tv1);

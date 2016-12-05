@@ -502,6 +502,7 @@ int fpm_event_add(struct fpm_event_s *ev, unsigned long int frequency) /* {{{ */
 	}
 
 	/* it's a timer event */
+	//定时事件(器)
 	ev->which = FPM_EV_TIMEOUT;
 
 	fpm_clock_get(&now);

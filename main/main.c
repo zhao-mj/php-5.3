@@ -258,8 +258,10 @@ static void php_disable_classes(TSRMLS_D)
 
 /* {{{ PHP_INI_MH
  */
+//更新超时时间
 static PHP_INI_MH(OnUpdateTimeout)
 {
+	//启动时，更新参数值
 	if (stage==PHP_INI_STAGE_STARTUP) {
 		/* Don't set a timeout on startup, only per-request */
 		EG(timeout_seconds) = atoi(new_value);
@@ -267,6 +269,7 @@ static PHP_INI_MH(OnUpdateTimeout)
 	}
 	zend_unset_timeout(TSRMLS_C);
 	EG(timeout_seconds) = atoi(new_value);
+	//重置超时定时器
 	zend_set_timeout(EG(timeout_seconds), 0);
 	return SUCCESS;
 }
@@ -1156,6 +1159,7 @@ static void php_error_cb(int type, const char *error_filename, const uint error_
 
 /* {{{ proto bool set_time_limit(int seconds)
    Sets the maximum time a script can run */
+//set_time_limit函数
 PHP_FUNCTION(set_time_limit)
 {
 	long new_timeout;
@@ -1172,7 +1176,7 @@ PHP_FUNCTION(set_time_limit)
 	}
 	
 	new_timeout_strlen = zend_spprintf(&new_timeout_str, 0, "%ld", new_timeout);
-
+	//修改配置
 	if (zend_alter_ini_entry_ex("max_execution_time", sizeof("max_execution_time"), new_timeout_str, new_timeout_strlen, PHP_INI_USER, PHP_INI_STAGE_RUNTIME, 0 TSRMLS_CC) == SUCCESS) {
 		RETVAL_TRUE;
 	} else {
@@ -1401,6 +1405,7 @@ static int php_start_sapi(TSRMLS_D)
 			PG(connection_status) = PHP_CONNECTION_NORMAL;
 
 			zend_activate(TSRMLS_C);
+			//设置超时
 			zend_set_timeout(EG(timeout_seconds), 1);
 			//激活模块
 			zend_activate_modules(TSRMLS_C);
@@ -1702,6 +1707,7 @@ void php_request_shutdown(void *dummy)
 
 	/* 12. Reset max_execution_time */
 	zend_try {
+		//删除超时定时器
 		zend_unset_timeout(TSRMLS_C);
 	} zend_end_try();
 
@@ -1901,7 +1907,7 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	zuf.unblock_interruptions = sapi_module.unblock_interruptions;
 	zuf.get_configuration_directive = php_get_configuration_directive_for_zend;
 	zuf.ticks_function = php_run_ticks;
-	zuf.on_timeout = php_on_timeout;
+	zuf.on_timeout = php_on_timeout; //超时回调函数
 	zuf.stream_open_function = php_stream_open_for_zend;
 	zuf.vspprintf_function = vspprintf;
 	zuf.getenv_function = sapi_getenv;
