@@ -900,7 +900,7 @@ static int fpm_conf_process_all_pools() /* {{{ */
 				wp->config->access_format = strdup("%R - %u %t \"%m %r\" %s");
 			}
 		}
-
+		//初始化心跳监控时间
 		if (wp->config->request_terminate_timeout) {
 			fpm_globals.heartbeat = fpm_globals.heartbeat ? MIN(fpm_globals.heartbeat, (wp->config->request_terminate_timeout * 1000) / 3) : (wp->config->request_terminate_timeout * 1000) / 3;
 		}
@@ -1655,7 +1655,7 @@ int fpm_conf_init_main(int test_conf, int force_daemon) /* {{{ */
 		zlog(ZLOG_ERROR, "failed to load configuration file '%s'", fpm_globals.config);
 		return -1;
 	}
-
+	//初始化worker进程配置
 	if (0 > fpm_conf_post_process(force_daemon TSRMLS_CC)) {
 		zlog(ZLOG_ERROR, "failed to post process the configuration");
 		return -1;

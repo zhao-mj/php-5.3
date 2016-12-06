@@ -281,6 +281,7 @@ ZEND_API int zend_alter_ini_entry_ex(char *name, uint name_length, char *new_val
 	}
 	//第一次修改记录修改的值
 	if (!modified) {
+		//保留系统配置
 		ini_entry->orig_value = ini_entry->value;
 		ini_entry->orig_value_length = ini_entry->value_length;
 		ini_entry->orig_modifiable = modifiable;
@@ -295,6 +296,7 @@ ZEND_API int zend_alter_ini_entry_ex(char *name, uint name_length, char *new_val
 		if (modified && ini_entry->orig_value != ini_entry->value) { /* we already changed the value, free the changed value */
 			efree(ini_entry->value);
 		}
+		//保留新值
 		ini_entry->value = duplicate;
 		ini_entry->value_length = new_value_length;
 	} else {

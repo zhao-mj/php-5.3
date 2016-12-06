@@ -354,6 +354,7 @@ void fpm_event_loop(int err) /* {{{ */
 	fpm_event_add(&signal_fd_event, 0);
 
 	/* add timers */
+	//慢日志及request_timeout监控
 	if (fpm_globals.heartbeat > 0) {
 		fpm_pctl_heartbeat(NULL, 0, NULL);
 	}
