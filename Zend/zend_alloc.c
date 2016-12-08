@@ -1069,6 +1069,7 @@ ZEND_API zend_mm_heap *zend_mm_startup_ex(const zend_mm_mem_handlers *handlers, 
 #endif
 		exit(255);
 	}
+	//设置handlers类库
 	storage->handlers = handlers;
 
 	heap = malloc(sizeof(struct _zend_mm_heap));
@@ -1741,6 +1742,7 @@ static void zend_mm_safe_error(zend_mm_heap *heap,
 static zend_mm_free_block *zend_mm_search_large_block(zend_mm_heap *heap, size_t true_size)
 {
 	zend_mm_free_block *best_fit;
+	//计算对应的下标
 	size_t index = ZEND_MM_LARGE_BUCKET_INDEX(true_size);
 	size_t bitmap = heap->large_free_bitmap >> index;
 	zend_mm_free_block *p;
@@ -1758,6 +1760,7 @@ static zend_mm_free_block *zend_mm_search_large_block(zend_mm_heap *heap, size_t
 		best_fit = NULL;
 		p = heap->large_free_buckets[index];
 		for (m = true_size << (ZEND_MM_NUM_BUCKETS - index); ; m <<= 1) {
+			//如果free_buckets[index]当前的内存大小和true_size相等 则寻找结束, 成功返回。
 			if (UNEXPECTED(ZEND_MM_FREE_BLOCK_SIZE(p) == true_size)) {
 				return p->next_free_block;
 			} else if (ZEND_MM_FREE_BLOCK_SIZE(p) >= true_size &&
