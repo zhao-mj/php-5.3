@@ -449,6 +449,8 @@ struct _zend_mm_heap {
 #endif
 };
 
+//(zend_mm_free_block*) ((char*)&heap->free_buckets[index * 2] 得到的是索引为index*2的元素的地址
+//sizeof(zend_mm_free_block*) * 2 - sizeof(zend_mm_small_free_block)) = -sizeof(zend_mm_block_info)
 #define ZEND_MM_SMALL_FREE_BUCKET(heap, index) \
 	(zend_mm_free_block*) ((char*)&heap->free_buckets[index * 2] + \
 		sizeof(zend_mm_free_block*) * 2 - \
@@ -881,7 +883,16 @@ static inline void zend_mm_init(zend_mm_heap *heap)
 		heap->cache_stat[i].count = 0;
 	}
 #endif
+	//此时，p指向第一个元素的prev_free_block属性的地址
 	p = ZEND_MM_SMALL_FREE_BUCKET(heap, 0);
+	/**
+	//参考文档：http://www.laruence.com/2011/11/09/2277.html
+	Q: 为什么free_buckets数组的长度是ZEND_MM_NUMBER_BUCKET个?
+	A: 这是因为, PHP在这处使用了一个技巧, 用一个定长的数组来存储ZEND_MM_NUMBER_BUCKET个zend_mm_free_block, 
+	    对于一个没有被使用的free_buckets的元素, 唯一有用的数据结构就是next_free_block和prev_free_block, 
+	    所以, 为了节省内存, PHP并没有分配ZEND_MM_NUMBER_BUCKET * sizeof(zend_mm_free_block)大小的内存, 
+	    而只是用了ZEND_MM_NUMBER_BUCKET * (sizeof(*next_free_block) + sizeof(*prev_free_block))大小的内存.
+	 */
 	for (i = 0; i < ZEND_MM_NUM_BUCKETS; i++) {
 		p->next_free_block = p;
 		p->prev_free_block = p;
