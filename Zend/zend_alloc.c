@@ -423,8 +423,8 @@ struct _zend_mm_heap {
 	size_t              compact_size;
 	zend_mm_segment    *segments_list;
 	zend_mm_storage    *storage;
-	size_t              real_size;
-	size_t              real_peak;
+	size_t              real_size; //真实大小
+	size_t              real_peak; //峰值
 	size_t              limit;
 	size_t              size;
 	size_t              peak;
@@ -524,14 +524,21 @@ static unsigned int _zend_mm_cookie = 0;
 #define ZEND_MM_FREE_BLOCK_SIZE(b)		(b)->info._size
 
 /* Aligned header size */
+//ZEND_MM_ALIGNED_HEADER_SIZE = 16个字节
 #define ZEND_MM_ALIGNED_HEADER_SIZE			ZEND_MM_ALIGNED_SIZE(sizeof(zend_mm_block))
+//ZEND_MM_ALIGNED_FREE_HEADER_SIZE = 32个字节
 #define ZEND_MM_ALIGNED_FREE_HEADER_SIZE	ZEND_MM_ALIGNED_SIZE(sizeof(zend_mm_small_free_block))
+//END_MAGIC_SIZE在下面被定义 END_MAGIC_SIZE=0
+//ZEND_MM_MIN_ALLOC_BLOCK_SIZE = 16
 #define ZEND_MM_MIN_ALLOC_BLOCK_SIZE		ZEND_MM_ALIGNED_SIZE(ZEND_MM_ALIGNED_HEADER_SIZE + END_MAGIC_SIZE)
+//ZEND_MM_ALIGNED_MIN_HEADER_SIZE = 32
 #define ZEND_MM_ALIGNED_MIN_HEADER_SIZE		(ZEND_MM_MIN_ALLOC_BLOCK_SIZE>ZEND_MM_ALIGNED_FREE_HEADER_SIZE?ZEND_MM_MIN_ALLOC_BLOCK_SIZE:ZEND_MM_ALIGNED_FREE_HEADER_SIZE)
+// 	ZEND_MM_ALIGNED_SEGMENT_SIZE = 16
 #define ZEND_MM_ALIGNED_SEGMENT_SIZE		ZEND_MM_ALIGNED_SIZE(sizeof(zend_mm_segment))
-
+// ZEND_MM_MIN_SIZE = 16
 #define ZEND_MM_MIN_SIZE					((ZEND_MM_ALIGNED_MIN_HEADER_SIZE>(ZEND_MM_ALIGNED_HEADER_SIZE+END_MAGIC_SIZE))?(ZEND_MM_ALIGNED_MIN_HEADER_SIZE-(ZEND_MM_ALIGNED_HEADER_SIZE+END_MAGIC_SIZE)):0)
 
+// ZEND_MM_MAX_SMALL_SIZE = 544
 #define ZEND_MM_MAX_SMALL_SIZE				((ZEND_MM_NUM_BUCKETS<<ZEND_MM_ALIGNMENT_LOG2)+ZEND_MM_ALIGNED_MIN_HEADER_SIZE)
 
 #define ZEND_MM_TRUE_SIZE(size)				((size<ZEND_MM_MIN_SIZE)?(ZEND_MM_ALIGNED_MIN_HEADER_SIZE):(ZEND_MM_ALIGNED_SIZE(size+ZEND_MM_ALIGNED_HEADER_SIZE+END_MAGIC_SIZE)))
@@ -780,6 +787,7 @@ static inline void zend_mm_add_to_free_list(zend_mm_heap *heap, zend_mm_free_blo
 			}
 		}
 	} else {
+		//小块内存
 		zend_mm_free_block *prev, *next;
 
 		index = ZEND_MM_BUCKET_INDEX(size);
@@ -1097,6 +1105,7 @@ ZEND_API zend_mm_heap *zend_mm_startup_ex(const zend_mm_mem_handlers *handlers, 
 	heap->block_size = block_size;
 	heap->compact_size = 0;
 	heap->segments_list = NULL;
+	//初始化heap
 	zend_mm_init(heap);
 # if ZEND_MM_CACHE_STAT
 	memset(heap->cache_stat, 0, sizeof(heap->cache_stat));
@@ -1204,6 +1213,7 @@ ZEND_API zend_mm_heap *zend_mm_startup(void)
 			exit(255);
 		}
 	} else {
+		//默认256KB
 		seg_size = ZEND_MM_SEG_SIZE;
 	}
 
@@ -1904,6 +1914,7 @@ static void *_zend_mm_alloc_int(zend_mm_heap *heap, size_t size ZEND_FILE_LINE_D
 			segment_size = (segment_size + (heap->block_size-1)) & ~(heap->block_size-1);
 			keep_rest = 1;
 		} else {
+			//默认block_size
 			segment_size = heap->block_size;
 		}
 
@@ -1922,7 +1933,7 @@ static void *_zend_mm_alloc_int(zend_mm_heap *heap, size_t size ZEND_FILE_LINE_D
 			zend_mm_safe_error(heap, "Allowed memory size of %ld bytes exhausted (tried to allocate %lu bytes)", heap->limit, size);
 #endif
 		}
-
+		//申请一块内存
 		segment = (zend_mm_segment *) ZEND_MM_STORAGE_ALLOC(segment_size);
 
 		if (!segment) {
@@ -1939,21 +1950,24 @@ out_of_memory:
 #endif
 			return NULL;
 		}
-
+		//emalloc分配的内存大小
 		heap->real_size += segment_size;
 		if (heap->real_size > heap->real_peak) {
 			heap->real_peak = heap->real_size;
 		}
-
+		//设置大小
 		segment->size = segment_size;
+		//将新元素放置表头
 		segment->next_segment = heap->segments_list;
+		//重置segments_list指向
 		heap->segments_list = segment;
 
 		best_fit = (zend_mm_free_block *) ((char *) segment + ZEND_MM_ALIGNED_SEGMENT_SIZE);
+		//重置第一个zend_mm_free_block info._prev属性值
 		ZEND_MM_MARK_FIRST_BLOCK(best_fit);
 
 		block_size = segment_size - ZEND_MM_ALIGNED_SEGMENT_SIZE - ZEND_MM_ALIGNED_HEADER_SIZE;
-
+		//设置最后一个zend_mm_block info.size
 		ZEND_MM_LAST_BLOCK(ZEND_MM_BLOCK_AT(best_fit, block_size));
 
 	} else {
@@ -1967,7 +1981,7 @@ zend_mm_finished_searching_for_block:
 
 		block_size = ZEND_MM_FREE_BLOCK_SIZE(best_fit);
 	}
-
+	//剩余大小
 	remaining_size = block_size - true_size;
 
 	if (remaining_size < ZEND_MM_ALIGNED_MIN_HEADER_SIZE) {
@@ -1977,6 +1991,7 @@ zend_mm_finished_searching_for_block:
 		zend_mm_free_block *new_free_block;
 
 		/* prepare new free block */
+		//准备一块新内存
 		ZEND_MM_BLOCK(best_fit, ZEND_MM_USED_BLOCK, true_size);
 		new_free_block = (zend_mm_free_block *) ZEND_MM_BLOCK_AT(best_fit, true_size);
 		ZEND_MM_BLOCK(new_free_block, ZEND_MM_FREE_BLOCK, remaining_size);
@@ -1990,8 +2005,9 @@ zend_mm_finished_searching_for_block:
 	}
 
 	ZEND_MM_SET_DEBUG_INFO(best_fit, size, 1, 1);
-
+	//记录系统分配的内存大小
 	heap->size += true_size;
+	//记录系统分配的峰值
 	if (heap->peak < heap->size) {
 		heap->peak = heap->size;
 	}

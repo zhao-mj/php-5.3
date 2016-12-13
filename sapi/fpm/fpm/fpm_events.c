@@ -164,6 +164,8 @@ static int fpm_event_queue_add(struct fpm_event_queue_s **queue, struct fpm_even
 	*queue = elt;
 
 	/* ask the event module to add the fd from its own queue */
+	//fpm_event_queue_fd:普通事件
+	//fpm_event_queue_timer: 定时时间
 	if (*queue == fpm_event_queue_fd && module->add) {
 		module->add(ev);
 	}

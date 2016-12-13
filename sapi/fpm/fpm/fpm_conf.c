@@ -939,7 +939,7 @@ static int fpm_conf_process_all_pools() /* {{{ */
 				}
 				close(fd);
 			}
-
+			//慢日志
 			fpm_globals.heartbeat = fpm_globals.heartbeat ? MIN(fpm_globals.heartbeat, (wp->config->request_slowlog_timeout * 1000) / 3) : (wp->config->request_slowlog_timeout * 1000) / 3;
 
 			if (wp->config->request_terminate_timeout && wp->config->request_slowlog_timeout > wp->config->request_terminate_timeout) {

@@ -27,6 +27,10 @@
 #include "../TSRM/TSRM.h"
 #include "zend.h"
 
+/**
+ * 在PHP的内存分配中使用了内存对齐，内存对齐计算显然有两个目标：一是减少CPU的访存次数；第二个就是还要保持存储空间的效率足够高。
+ * PHP在分配块的内存中，用到内存对齐，如果所需要的内存的大小的低三位不为0（不能为8整除），则将低三位加上7，并~7进行与操作，即对于大小不是8的整数倍的内存大小补全到可以被8整除。
+ */
 #ifndef ZEND_MM_ALIGNMENT
 # define ZEND_MM_ALIGNMENT 8
 # define ZEND_MM_ALIGNMENT_LOG2 3
@@ -37,8 +41,10 @@
 # define ZEND_MM_ALIGNMENT_LOG2 2
 #endif
 
+//-7
 #define ZEND_MM_ALIGNMENT_MASK ~(ZEND_MM_ALIGNMENT-1)
 
+//分配内存大小
 #define ZEND_MM_ALIGNED_SIZE(size)	(((size) + ZEND_MM_ALIGNMENT - 1) & ZEND_MM_ALIGNMENT_MASK)
 
 typedef struct _zend_leak_info {
