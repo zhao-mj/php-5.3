@@ -660,7 +660,7 @@ static unsigned int _mem_block_end_magic   = 0;
 # define ZEND_MM_CHECK_BLOCK_LINKAGE(block)
 # define ZEND_MM_CHECK_TREE(block)
 #endif
-
+//最高位1的序号
 #define ZEND_MM_LARGE_BUCKET_INDEX(S) zend_mm_high_bit(S)
 
 static void *_zend_mm_alloc_int(zend_mm_heap *heap, size_t size ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC) ZEND_ATTRIBUTE_MALLOC;
@@ -752,7 +752,7 @@ static inline void zend_mm_add_to_free_list(zend_mm_heap *heap, zend_mm_free_blo
 	size = ZEND_MM_FREE_BLOCK_SIZE(mm_block);
 	if (EXPECTED(!ZEND_MM_SMALL_SIZE(size))) {
 		zend_mm_free_block **p;
-
+		//根据size获取对应的LARGE下标
 		index = ZEND_MM_LARGE_BUCKET_INDEX(size);
 		p = &heap->large_free_buckets[index];
 		mm_block->child[0] = mm_block->child[1] = NULL;
@@ -789,15 +789,16 @@ static inline void zend_mm_add_to_free_list(zend_mm_heap *heap, zend_mm_free_blo
 	} else {
 		//小块内存
 		zend_mm_free_block *prev, *next;
-
+		//根据size获取对应的下标
 		index = ZEND_MM_BUCKET_INDEX(size);
-
+		//获取index的 prev_free_block位置
 		prev = ZEND_MM_SMALL_FREE_BUCKET(heap, index);
 		if (prev->prev_free_block == prev) {
+			//标志位
 			heap->free_bitmap |= (ZEND_MM_LONG_CONST(1) << index);
 		}
 		next = prev->next_free_block;
-
+		//设置mm_block指针指向
 		mm_block->prev_free_block = prev;
 		mm_block->next_free_block = next;
 		prev->next_free_block = next->prev_free_block = mm_block;
@@ -1874,6 +1875,7 @@ static void *_zend_mm_alloc_int(zend_mm_heap *heap, size_t size ZEND_FILE_LINE_D
 		bitmap = heap->free_bitmap >> index;
 		if (bitmap) {
 			/* Found some "small" free block that can be used */
+			//寻找最适合的内存块下标
 			index += zend_mm_low_bit(bitmap);
 			best_fit = heap->free_buckets[index*2];
 #if ZEND_MM_CACHE_STAT
@@ -1977,13 +1979,14 @@ zend_mm_finished_searching_for_block:
 		ZEND_MM_CHECK_MAGIC(best_fit, MEM_BLOCK_FREED);
 		ZEND_MM_CHECK_COOKIE(best_fit);
 		ZEND_MM_CHECK_BLOCK_LINKAGE(best_fit);
+		//从list移除best_fit,稍后best_fit空间会发生变化
 		zend_mm_remove_from_free_list(heap, best_fit);
-
+		//获取剩余空间大小
 		block_size = ZEND_MM_FREE_BLOCK_SIZE(best_fit);
 	}
 	//剩余大小
 	remaining_size = block_size - true_size;
-
+	//分配后的空间<ZEND_MM_ALIGNED_MIN_HEADER_SIZE，则表明不足以分配一个block。
 	if (remaining_size < ZEND_MM_ALIGNED_MIN_HEADER_SIZE) {
 		true_size = block_size;
 		ZEND_MM_BLOCK(best_fit, ZEND_MM_USED_BLOCK, true_size);
@@ -1998,6 +2001,7 @@ zend_mm_finished_searching_for_block:
 
 		/* add the new free block to the free list */
 		if (EXPECTED(!keep_rest)) {
+			//添加到free列表中
 			zend_mm_add_to_free_list(heap, new_free_block);
 		} else {
 			zend_mm_add_to_rest_list(heap, new_free_block);
