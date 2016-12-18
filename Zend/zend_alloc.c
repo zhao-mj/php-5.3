@@ -766,7 +766,7 @@ static inline void zend_mm_add_to_free_list(zend_mm_heap *heap, zend_mm_free_blo
 
 			for (m = size << (ZEND_MM_NUM_BUCKETS - index); ; m <<= 1) {
 				zend_mm_free_block *prev = *p;
-
+				//判断mm_block大小与当前节点大小是否相同
 				if (ZEND_MM_FREE_BLOCK_SIZE(prev) != size) {
 					p = &prev->child[(m >> (ZEND_MM_NUM_BUCKETS-1)) & 1];
 					if (!*p) {
@@ -776,6 +776,7 @@ static inline void zend_mm_add_to_free_list(zend_mm_heap *heap, zend_mm_free_blo
 						break;
 					}
 				} else {
+					//如果一致，则维护一个双向链表，分别修改p->prev和p->next及mm_block->next_free_block与mm_block->prev_free_block 指向。
 					zend_mm_free_block *next = prev->next_free_block;
 
 					prev->next_free_block = next->prev_free_block = mm_block;
@@ -793,6 +794,7 @@ static inline void zend_mm_add_to_free_list(zend_mm_heap *heap, zend_mm_free_blo
 		index = ZEND_MM_BUCKET_INDEX(size);
 		//获取index的 prev_free_block位置
 		prev = ZEND_MM_SMALL_FREE_BUCKET(heap, index);
+		//index下标的第一个元素
 		if (prev->prev_free_block == prev) {
 			//标志位
 			heap->free_bitmap |= (ZEND_MM_LONG_CONST(1) << index);
@@ -801,12 +803,14 @@ static inline void zend_mm_add_to_free_list(zend_mm_heap *heap, zend_mm_free_blo
 		//设置mm_block指针指向
 		mm_block->prev_free_block = prev;
 		mm_block->next_free_block = next;
+		//next->prev_free_block = mm_block 改变prev->prev_free_block指向
 		prev->next_free_block = next->prev_free_block = mm_block;
 	}
 }
 
 static inline void zend_mm_remove_from_free_list(zend_mm_heap *heap, zend_mm_free_block *mm_block)
 {
+	//mm_block的prev_free_block和next_free_block指向
 	zend_mm_free_block *prev = mm_block->prev_free_block;
 	zend_mm_free_block *next = mm_block->next_free_block;
 
@@ -824,14 +828,17 @@ static inline void zend_mm_remove_from_free_list(zend_mm_heap *heap, zend_mm_fre
 		rp = &mm_block->child[mm_block->child[1] != NULL];
 		prev = *rp;
 		if (EXPECTED(prev == NULL)) {
+			//此时表明，该节点无child[0]、child[1]节点
 			size_t index = ZEND_MM_LARGE_BUCKET_INDEX(ZEND_MM_FREE_BLOCK_SIZE(mm_block));
 
 			ZEND_MM_CHECK_TREE(mm_block);
 			*mm_block->parent = NULL;
+			//如果mm_block是最后一个节点，则重置large_free_bitmap标志位
 			if (mm_block->parent == &heap->large_free_buckets[index]) {
 				heap->large_free_bitmap &= ~(ZEND_MM_LONG_CONST(1) << index);
 		    }
 		} else {
+			//优先遍历child[1]，如果没有child[1]，则遍历child[0]
 			while (*(cp = &(prev->child[prev->child[1] != NULL])) != NULL) {
 				prev = *cp;
 				rp = cp;
@@ -840,8 +847,11 @@ static inline void zend_mm_remove_from_free_list(zend_mm_heap *heap, zend_mm_fre
 
 subst_block:
 			ZEND_MM_CHECK_TREE(mm_block);
+			//改变mm_block->parent指向
 			*mm_block->parent = prev;
+			//修改prev->parent指向
 			prev->parent = mm_block->parent;
+			//重置prev->child[0]节点
 			if ((prev->child[0] = mm_block->child[0])) {
 				ZEND_MM_CHECK_TREE(prev->child[0]);
 				prev->child[0]->parent = &prev->child[0];
@@ -858,11 +868,13 @@ subst_block:
 			zend_mm_panic("zend_mm_heap corrupted");
 		}
 #endif
-
+		//改变指向，移除mm_block
 		prev->next_free_block = next;
 		next->prev_free_block = prev;
 
 		if (EXPECTED(ZEND_MM_SMALL_SIZE(ZEND_MM_FREE_BLOCK_SIZE(mm_block)))) {
+			//如果只有index下标只对应一个内存块，则修改free_bitmap标识。
+			//内存块的大小随着分配后空间会缩小，那么其对应的index可能也会发生变化。
 			if (EXPECTED(prev == next)) {
 				size_t index = ZEND_MM_BUCKET_INDEX(ZEND_MM_FREE_BLOCK_SIZE(mm_block));
 
@@ -1669,6 +1681,7 @@ ZEND_API void zend_mm_shutdown(zend_mm_heap *heap, int full_shutdown, int silent
 	internal = heap->internal;
 	storage = heap->storage;
 	segment = heap->segments_list;
+	//释放内存
 	while (segment) {
 		prev = segment;
 		segment = segment->next_segment;
@@ -1680,6 +1693,7 @@ ZEND_API void zend_mm_shutdown(zend_mm_heap *heap, int full_shutdown, int silent
 			free(heap);
 		}
 	} else {
+		//重置heap->segments_list
 		if (heap->compact_size &&
 		    heap->real_peak > heap->compact_size) {
 			storage->handlers->compact(storage);
@@ -1777,6 +1791,7 @@ static zend_mm_free_block *zend_mm_search_large_block(zend_mm_heap *heap, size_t
 		/* Search for best "large" free block */
 		zend_mm_free_block *rst = NULL;
 		size_t m;
+		//size_t相当于unsigned int
 		size_t best_size = -1;
 
 		best_fit = NULL;
@@ -1790,6 +1805,9 @@ static zend_mm_free_block *zend_mm_search_large_block(zend_mm_heap *heap, size_t
 				best_size = ZEND_MM_FREE_BLOCK_SIZE(p);
 				best_fit = p;
 			}
+			//m & (ZEND_MM_LONG_CONST(1) << (ZEND_MM_NUM_BUCKETS-1)) 只有0,1两种结果
+			//=1时，只能从p->child[1]中寻找
+			//=0时，优先从p->child[0]处寻找，如果p->child[0]未找到，则从p->child[1]处寻找
 			if ((m & (ZEND_MM_LONG_CONST(1) << (ZEND_MM_NUM_BUCKETS-1))) == 0) {
 				if (p->child[1]) {
 					rst = p->child[1];
@@ -1806,6 +1824,7 @@ static zend_mm_free_block *zend_mm_search_large_block(zend_mm_heap *heap, size_t
 			}
 		}
 
+		//遍历rst，从child[0]处寻找最合适的内存
 		for (p = rst; p; p = p->child[p->child[0] != NULL]) {
 			if (UNEXPECTED(ZEND_MM_FREE_BLOCK_SIZE(p) == true_size)) {
 				return p->next_free_block;
@@ -1815,19 +1834,21 @@ static zend_mm_free_block *zend_mm_search_large_block(zend_mm_heap *heap, size_t
 				best_fit = p;
 			}
 		}
-
+		//如果找到则return
 		if (best_fit) {
 			return best_fit->next_free_block;
 		}
+		//如果没找到，判断heap->large_free_buckets列表中是否有更大的内存
 		bitmap = bitmap >> 1;
 		if (!bitmap) {
 			return NULL;
 		}
 		index++;
 	}
-
+	//寻找最小的large内存块
 	/* Search for smallest "large" free block */
 	best_fit = p = heap->large_free_buckets[index + zend_mm_low_bit(bitmap)];
+	//只从child[0]寻找
 	while ((p = p->child[p->child[0] != NULL])) {
 		if (ZEND_MM_FREE_BLOCK_SIZE(p) < ZEND_MM_FREE_BLOCK_SIZE(best_fit)) {
 			best_fit = p;
@@ -1890,7 +1911,7 @@ static void *_zend_mm_alloc_int(zend_mm_heap *heap, size_t size ZEND_FILE_LINE_D
 #endif
 
 	best_fit = zend_mm_search_large_block(heap, true_size);
-
+	//内存不足分配情况下，判断heap->rest_buckets是否存在内存块
 	if (!best_fit && heap->real_size >= heap->limit - heap->block_size) {
 		zend_mm_free_block *p = heap->rest_buckets[0];
 		size_t best_size = -1;
@@ -1909,6 +1930,7 @@ static void *_zend_mm_alloc_int(zend_mm_heap *heap, size_t size ZEND_FILE_LINE_D
 	}
 
 	if (!best_fit) {
+		//判断申请的空间是否大于heap->block_size
 		if (true_size > heap->block_size - (ZEND_MM_ALIGNED_SEGMENT_SIZE + ZEND_MM_ALIGNED_HEADER_SIZE)) {
 			/* Make sure we add a memory block which is big enough,
 			   segment must have header "size" and trailer "guard" block */

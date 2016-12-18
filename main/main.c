@@ -1702,6 +1702,7 @@ void php_request_shutdown(void *dummy)
 
 	/* 11. Free Willy (here be crashes) */
 	zend_try {
+		//释放内存
 		shutdown_memory_manager(CG(unclean_shutdown) || !report_memleaks, 0 TSRMLS_CC);
 	} zend_end_try();
 
