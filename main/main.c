@@ -1926,6 +1926,7 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 #else
 	php_startup_ticks(TSRMLS_C);
 #endif
+	//定义GC全局变量
 	gc_globals_ctor(TSRMLS_C);
 
 #ifdef PHP_WIN32

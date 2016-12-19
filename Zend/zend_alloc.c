@@ -2085,15 +2085,19 @@ static void _zend_mm_free_int(zend_mm_heap *heap, void *p ZEND_FILE_LINE_DC ZEND
 	heap->size -= size;
 
 	next_block = ZEND_MM_BLOCK_AT(mm_block, size);
+	//如果下一个为空闲节点，则进行合并
 	if (ZEND_MM_IS_FREE_BLOCK(next_block)) {
 		zend_mm_remove_from_free_list(heap, (zend_mm_free_block *) next_block);
 		size += ZEND_MM_FREE_BLOCK_SIZE(next_block);
 	}
+	//如果上一个为空闲节点，则进行合并
 	if (ZEND_MM_PREV_BLOCK_IS_FREE(mm_block)) {
 		mm_block = ZEND_MM_PREV_BLOCK(mm_block);
 		zend_mm_remove_from_free_list(heap, (zend_mm_free_block *) mm_block);
 		size += ZEND_MM_FREE_BLOCK_SIZE(mm_block);
 	}
+	//如果该segment内存块都是空闲的内存，则进行回收
+	//否则，则重新添加到空闲列表中
 	if (ZEND_MM_IS_FIRST_BLOCK(mm_block) &&
 	    ZEND_MM_IS_GUARD_BLOCK(ZEND_MM_BLOCK_AT(mm_block, size))) {
 		zend_mm_del_segment(heap, (zend_mm_segment *) ((char *)mm_block - ZEND_MM_ALIGNED_SEGMENT_SIZE));

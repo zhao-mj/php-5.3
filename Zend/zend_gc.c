@@ -118,6 +118,7 @@ ZEND_API void gc_reset(TSRMLS_D)
 	}
 }
 
+//gc初始化
 ZEND_API void gc_init(TSRMLS_D)
 {
 	if (GC_G(buf) == NULL && GC_G(gc_enabled)) {
@@ -145,7 +146,7 @@ ZEND_API void gc_zval_possible_root(zval *zv TSRMLS_DC)
 	}
 
 	GC_BENCH_INC(zval_possible_root);
-
+	//GC_PURPLE 紫色表示已放入缓冲区
 	if (GC_ZVAL_GET_COLOR(zv) != GC_PURPLE) {
 		GC_ZVAL_SET_PURPLE(zv);
 
@@ -155,14 +156,17 @@ ZEND_API void gc_zval_possible_root(zval *zv TSRMLS_DC)
 			if (newRoot) {
 				GC_G(unused) = newRoot->prev;
 			} else if (GC_G(first_unused) != GC_G(last_unused)) {
+				//缓冲区未满
 				newRoot = GC_G(first_unused);
 				GC_G(first_unused)++;
 			} else {
+				//缓冲区已满
 				if (!GC_G(gc_enabled)) {
 					GC_ZVAL_SET_BLACK(zv);
 					return;
 				}
 				zv->refcount__gc++;
+				//缓冲区满了 则调用gc_collect_cycles进行回收
 				gc_collect_cycles(TSRMLS_C);
 				zv->refcount__gc--;
 				newRoot = GC_G(unused);
@@ -172,7 +176,7 @@ ZEND_API void gc_zval_possible_root(zval *zv TSRMLS_DC)
 				GC_ZVAL_SET_PURPLE(zv);
 				GC_G(unused) = newRoot->prev;
 			}
-
+			//添加至roots
 			newRoot->next = GC_G(roots).next;
 			newRoot->prev = &GC_G(roots);
 			GC_G(roots).next->prev = newRoot;
@@ -432,6 +436,7 @@ static void gc_mark_roots(TSRMLS_D)
 			}
 		} else {
 			if (GC_ZVAL_GET_COLOR(current->u.pz) == GC_PURPLE) {
+				//标记u.pz状态
 				zval_mark_grey(current->u.pz TSRMLS_CC);
 			} else {
 				GC_ZVAL_SET_ADDRESS(current->u.pz, NULL);
@@ -639,6 +644,7 @@ static void gc_collect_roots(TSRMLS_D)
 				zobj_collect_white(&z TSRMLS_CC);
 			}
 		} else {
+			//current->handle = 0
 			GC_ZVAL_SET_ADDRESS(current->u.pz, NULL);
 			zval_collect_white(current->u.pz TSRMLS_CC);
 		}
@@ -663,6 +669,7 @@ ZEND_API int gc_collect_cycles(TSRMLS_D)
 		GC_G(gc_runs)++;
 		GC_G(zval_to_free) = FREE_LIST_END;
 		GC_G(gc_active) = 1;
+		//标记COLORE = GC_GREY
 		gc_mark_roots(TSRMLS_C);
 		gc_scan_roots(TSRMLS_C);
 		gc_collect_roots(TSRMLS_C);

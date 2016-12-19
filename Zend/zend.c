@@ -76,6 +76,7 @@ static ZEND_INI_MH(OnUpdateErrorReporting) /* {{{ */
 }
 /* }}} */
 
+//gc垃圾回收机制
 static ZEND_INI_MH(OnUpdateGCEnabled) /* {{{ */
 {
 	OnUpdateBool(entry, new_value, new_value_length, mh_arg1, mh_arg2, mh_arg3, stage TSRMLS_CC);

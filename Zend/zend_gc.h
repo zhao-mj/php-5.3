@@ -49,6 +49,8 @@
 
 #define GC_ADDRESS(v) \
 	((gc_root_buffer*)(((zend_uintptr_t)(v)) & ~GC_COLOR))
+//zend_uintptr_t为 unsigned long 
+//a 代表地址
 #define GC_SET_ADDRESS(v, a) \
 	(v) = ((gc_root_buffer*)((((zend_uintptr_t)(v)) & GC_COLOR) | ((zend_uintptr_t)(a))))
 #define GC_GET_COLOR(v) \
@@ -179,6 +181,7 @@ END_EXTERN_C()
 
 static zend_always_inline void gc_zval_check_possible_root(zval *z TSRMLS_DC)
 {
+	//判断z类型是否是数组或者对象
 	if (z->type == IS_ARRAY || z->type == IS_OBJECT) {
 		gc_zval_possible_root(z TSRMLS_CC);
 	}

@@ -436,10 +436,12 @@ ZEND_API void _zval_ptr_dtor(zval **zval_ptr ZEND_FILE_LINE_DC) /* {{{ */
 #if DEBUG_ZEND>=2
 	printf("Reducing refcount for %x (%x): %d->%d\n", *zval_ptr, zval_ptr, Z_REFCOUNT_PP(zval_ptr), Z_REFCOUNT_PP(zval_ptr) - 1);
 #endif
+	//zv refcount__gc-- 引用计数-1
 	Z_DELREF_P(zv);
+
 	if (Z_REFCOUNT_P(zv) == 0) {
 		TSRMLS_FETCH();
-
+		//如果引用计数为0，则直接回收变量
 		if (zv != &EG(uninitialized_zval)) {
 			GC_REMOVE_ZVAL_FROM_BUFFER(zv);
 			zval_dtor(zv);
@@ -447,7 +449,7 @@ ZEND_API void _zval_ptr_dtor(zval **zval_ptr ZEND_FILE_LINE_DC) /* {{{ */
 		}
 	} else {
 		TSRMLS_FETCH();
-
+		//如果引用计数=1，则重置is_ref__gc属性
 		if (Z_REFCOUNT_P(zv) == 1) {
 			Z_UNSET_ISREF_P(zv);
 		}

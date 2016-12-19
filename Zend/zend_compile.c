@@ -520,7 +520,7 @@ void fetch_string_offset(znode *result, const znode *parent, const znode *offset
 void zend_do_print(znode *result, const znode *arg TSRMLS_DC) /* {{{ */
 {
 	zend_op *opline = get_next_op(CG(active_op_array) TSRMLS_CC);
-
+	//设置返回值
 	opline->result.op_type = IS_TMP_VAR;
 	opline->result.u.var = get_temporary_variable(CG(active_op_array));
 	opline->opcode = ZEND_PRINT;
