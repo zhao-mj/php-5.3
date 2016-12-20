@@ -338,7 +338,14 @@ static void zobj_scan_black(struct _store_object *obj, zval *pz TSRMLS_DC)
 		}
 	}
 }
+/*
+	采用深搜索遍历
 
+	example:
+	$a = array('one');
+	$a[] = &$a;
+	unset($a);
+ */
 static void zval_mark_grey(zval *pz TSRMLS_DC)
 {
 	Bucket *p;
@@ -374,6 +381,7 @@ tail_call:
 		}
 		while (p != NULL) {
 			pz = *(zval**)p->pData;
+			//非数组, 则 pz->refcount__gc--
 			if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
 				pz->refcount__gc--;
 			}
@@ -419,6 +427,7 @@ static void gc_mark_roots(TSRMLS_D)
 
 	while (current != &GC_G(roots)) {
 		if (current->handle) {
+			//对象
 			if (EG(objects_store).object_buckets) {
 				struct _store_object *obj = &EG(objects_store).object_buckets[current->handle].bucket.obj;
 
@@ -435,6 +444,7 @@ static void gc_mark_roots(TSRMLS_D)
 				}
 			}
 		} else {
+			//数组
 			if (GC_ZVAL_GET_COLOR(current->u.pz) == GC_PURPLE) {
 				//标记u.pz状态
 				zval_mark_grey(current->u.pz TSRMLS_CC);
@@ -454,9 +464,11 @@ static int zval_scan(zval *pz TSRMLS_DC)
 tail_call:	
 	if (GC_ZVAL_GET_COLOR(pz) == GC_GREY) {
 		p = NULL;
-		if (pz->refcount__gc > 0) {
+		if (pz->refcount__gc  > 0) {
+			//pz->refcount__gc 标记为黑色
 			zval_scan_black(pz TSRMLS_CC);
 		} else {
+			//标记为白色
 			GC_ZVAL_SET_COLOR(pz, GC_WHITE);
 			if (Z_TYPE_P(pz) == IS_OBJECT && EG(objects_store).object_buckets) {
 				struct _store_object *obj = &EG(objects_store).object_buckets[Z_OBJ_HANDLE_P(pz)].bucket.obj;
@@ -577,6 +589,7 @@ tail_call:
 		}
 
 		/* restore refcount and put into list to free */
+		//恢复引用计数
 		pz->refcount__gc++;
 		((zval_gc_info*)pz)->u.next = GC_G(zval_to_free);
 		GC_G(zval_to_free) = (zval_gc_info*)pz;
@@ -669,9 +682,17 @@ ZEND_API int gc_collect_cycles(TSRMLS_D)
 		GC_G(gc_runs)++;
 		GC_G(zval_to_free) = FREE_LIST_END;
 		GC_G(gc_active) = 1;
+		//http://php.net/manual/zh/features.gc.collecting-cycles.php
 		//标记COLORE = GC_GREY
+		//1.模拟删除每个紫色变量。模拟删除时可能将不是紫色的普通变量引用数减"1"，如果某个普通变量引用计数变成0了，就对这个普通变量再做一次模拟删除。
+		//每个变量只能被模拟删除一次，模拟删除后标记为灰（原文说确保不会对同一个变量容器减两次"1",不对的吧）
+		
+		//这样剩下的一堆没能恢复的就是该删除的蓝色节点了，在步骤 D 中遍历出来真的删除掉。
 		gc_mark_roots(TSRMLS_C);
+		//2.模拟恢复每个紫色变量。恢复是有条件的，当变量的引用计数大于0时才对其做模拟恢复。同样每个变量只能恢复一次，恢复后标记为黑，基本就是步骤 B 的逆运算。
 		gc_scan_roots(TSRMLS_C);
+		//收集带有“白色”标识的变量
+		//恢复引用计数，收集回收对象至zval_to_free
 		gc_collect_roots(TSRMLS_C);
 
 		orig_free_list = GC_G(free_list);
@@ -681,6 +702,7 @@ ZEND_API int gc_collect_cycles(TSRMLS_D)
 		GC_G(gc_active) = 0;
 
 		/* First call destructors */
+		//回调对象__destructors
 		while (p != FREE_LIST_END) {
 			if (Z_TYPE(p->z) == IS_OBJECT) {
 				if (EG(objects_store).object_buckets &&
@@ -700,6 +722,7 @@ ZEND_API int gc_collect_cycles(TSRMLS_D)
 		}
 
 		/* Destroy zvals */
+		//回收变量
 		p = GC_G(free_list);
 		while (p != FREE_LIST_END) {
 			GC_G(next_to_free) = p->u.next;
