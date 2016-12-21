@@ -1656,6 +1656,7 @@ void php_request_shutdown(void *dummy)
 
 	/* 5. Call all extensions RSHUTDOWN functions */
 	if (PG(modules_activated)) {
+		//回调扩展函数
 		zend_deactivate_modules(TSRMLS_C);
 		php_free_shutdown_functions(TSRMLS_C);
 	}
