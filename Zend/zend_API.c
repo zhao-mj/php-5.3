@@ -1661,7 +1661,7 @@ try_again:
 	}
 }
 /* }}} */
-
+//加载module模块
 ZEND_API int zend_startup_modules(TSRMLS_D) /* {{{ */
 {
 	zend_hash_sort(&module_registry, zend_sort_modules, NULL, 0 TSRMLS_CC);
@@ -2072,6 +2072,7 @@ ZEND_API void zend_unregister_functions(const zend_function_entry *functions, in
 }
 /* }}} */
 
+//启动模块
 ZEND_API int zend_startup_module(zend_module_entry *module) /* {{{ */
 {
 	TSRMLS_FETCH();
@@ -2153,6 +2154,7 @@ void module_destructor(zend_module_entry *module) /* {{{ */
 /* }}} */
 
 /* call request startup for all modules */
+//调用module请求开始处理函数
 int module_registry_request_startup(zend_module_entry *module TSRMLS_DC) /* {{{ */
 {
 	if (module->request_startup_func) {
@@ -2169,6 +2171,7 @@ int module_registry_request_startup(zend_module_entry *module TSRMLS_DC) /* {{{ 
 /* }}} */
 
 /* call request shutdown for all modules */
+//调用module请求关闭方法
 int module_registry_cleanup(zend_module_entry *module TSRMLS_DC) /* {{{ */
 {
 	if (module->request_shutdown_func) {
