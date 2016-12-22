@@ -1628,6 +1628,7 @@ void php_request_shutdown(void *dummy)
 
 	/* 1. Call all possible shutdown functions registered with register_shutdown_function() */
 	//回调用户注册的register_shutdown_function(XXX)方法
+	//ext/standard/basic_functions.c
 	if (PG(modules_activated)) zend_try {
 		php_call_shutdown_functions(TSRMLS_C);
 	} zend_end_try();
@@ -1656,7 +1657,9 @@ void php_request_shutdown(void *dummy)
 
 	/* 5. Call all extensions RSHUTDOWN functions */
 	if (PG(modules_activated)) {
+		//回调php模块的RSHUTDOWN
 		zend_deactivate_modules(TSRMLS_C);
+		//释放register_shutdown_function的 hash表 ext/standard/basic_functions.c
 		php_free_shutdown_functions(TSRMLS_C);
 	}
 
@@ -1683,6 +1686,7 @@ void php_request_shutdown(void *dummy)
 	}
 
 	/* 7. Shutdown scanner/executor/compiler and restore ini entries */
+	//清除executor和complier数据
 	zend_deactivate(TSRMLS_C);
 
 	/* 8. Call all extensions post-RSHUTDOWN functions */
@@ -1692,6 +1696,8 @@ void php_request_shutdown(void *dummy)
 
 	/* 9. SAPI related shutdown (free stuff) */
 	zend_try {
+		//重置 SG(sapi_started) 状态
+		//释放sapi内存
 		sapi_deactivate(TSRMLS_C);
 	} zend_end_try();
 

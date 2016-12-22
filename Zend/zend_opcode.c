@@ -143,7 +143,7 @@ ZEND_API int zend_cleanup_function_data(zend_function *function TSRMLS_DC)
 		return ZEND_HASH_APPLY_STOP;
 	}
 }
-
+	//清理用户自定义函数
 ZEND_API int zend_cleanup_function_data_full(zend_function *function TSRMLS_DC)
 {
 	if (function->type == ZEND_USER_FUNCTION) {

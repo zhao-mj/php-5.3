@@ -101,7 +101,7 @@ static void zend_extension_deactivator(zend_extension *extension TSRMLS_DC) /* {
 	}
 }
 /* }}} */
-
+//判断函数是否为系统函数
 static int clean_non_persistent_function(zend_function *function TSRMLS_DC) /* {{{ */
 {
 	return (function->type == ZEND_INTERNAL_FUNCTION) ? ZEND_HASH_APPLY_STOP : ZEND_HASH_APPLY_REMOVE;
