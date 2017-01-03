@@ -1040,7 +1040,7 @@ int zend_call_function(zend_fcall_info *fci, zend_fcall_info_cache *fci_cache TS
 	return SUCCESS;
 }
 /* }}} */
-
+//查找类
 ZEND_API int zend_lookup_class_ex(const char *name, int name_length, int use_autoload, zend_class_entry ***ce TSRMLS_DC) /* {{{ */
 {
 	zval **args[1];
@@ -1123,6 +1123,7 @@ ZEND_API int zend_lookup_class_ex(const char *name, int name_length, int use_aut
 	fcall_cache.object_ptr = NULL;
 
 	zend_exception_save(TSRMLS_C);
+	//调用自动加载函数进行查找
 	retval = zend_call_function(&fcall_info, &fcall_cache TSRMLS_CC);
 	zend_exception_restore(TSRMLS_C);
 

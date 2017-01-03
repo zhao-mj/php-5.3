@@ -382,7 +382,7 @@ static inline void zend_switch_free(temp_variable *T, int extended_value TSRMLS_
 		PZVAL_UNLOCK_FREE(T->str_offset.str);
 	}
 }
-
+//example: $a=&$b;
 static void zend_assign_to_variable_reference(zval **variable_ptr_ptr, zval **value_ptr_ptr TSRMLS_DC)
 {
 	zval *variable_ptr = *variable_ptr_ptr;
@@ -391,6 +391,7 @@ static void zend_assign_to_variable_reference(zval **variable_ptr_ptr, zval **va
 	if (variable_ptr == EG(error_zval_ptr) || value_ptr==EG(error_zval_ptr)) {
 		variable_ptr_ptr = &EG(uninitialized_zval_ptr);
 	} else if (variable_ptr != value_ptr) {
+		//value_ptr非引用调用
 		if (!PZVAL_IS_REF(value_ptr)) {
 			/* break it away */
 			Z_DELREF_P(value_ptr);
@@ -658,6 +659,9 @@ static inline int zend_assign_to_string_offset(const temp_variable *T, const zva
 	return 1;
 }
 
+//example:
+//int a=10; int *p; int **q; p=&a;**q=&p;
+//p的值为a的地址，**q为p的地址
 static inline zval* zend_assign_to_variable(zval **variable_ptr_ptr, zval *value, int is_tmp_var TSRMLS_DC)
 {
 	zval *variable_ptr = *variable_ptr_ptr;
@@ -713,11 +717,11 @@ static inline zval* zend_assign_to_variable(zval **variable_ptr_ptr, zval *value
 				} else {
 					//value refcount++
 					Z_ADDREF_P(value);
-					//将variable_ptr_ptr指针指向value
+					//将variable_ptr_ptr指针修改为value，value为指针
 					*variable_ptr_ptr = value;
 					//判断variable_ptr_ptr之前是否有定义,
 					if (variable_ptr != &EG(uninitialized_zval)) {
-						//如果之前有定义，则从垃圾回收机制中移除
+						//如果之前有定义，则调用垃圾回收机制 进行回收
 						GC_REMOVE_ZVAL_FROM_BUFFER(variable_ptr);
 						//执行zval回收函数
 						zval_dtor(variable_ptr);
@@ -749,6 +753,7 @@ static inline zval* zend_assign_to_variable(zval **variable_ptr_ptr, zval *value
 					Z_SET_REFCOUNT_P(variable_ptr, 1);
 					zval_copy_ctor(variable_ptr);
 				} else {
+					//修改*variable_ptr_ptr（variable_ptr）为value，value为指针，*value为指针指向的值
 					*variable_ptr_ptr = value;
 					Z_ADDREF_P(value);
 				}
