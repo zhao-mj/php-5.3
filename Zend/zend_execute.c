@@ -669,44 +669,59 @@ static inline zval* zend_assign_to_variable(zval **variable_ptr_ptr, zval *value
 		}
 		return EG(uninitialized_zval_ptr);
 	}
-
+	//variable_ptr为对象
 	if (Z_TYPE_P(variable_ptr) == IS_OBJECT && Z_OBJ_HANDLER_P(variable_ptr, set)) {
 		Z_OBJ_HANDLER_P(variable_ptr, set)(variable_ptr_ptr, value TSRMLS_CC);
 		return variable_ptr;
 	}
-
+	//variable_ptr is_ref_gc是否为1
  	if (PZVAL_IS_REF(variable_ptr)) {
 		if (variable_ptr!=value) {
 			zend_uint refcount = Z_REFCOUNT_P(variable_ptr);
 
 			garbage = *variable_ptr;
+			//修改variable_ptr指向的地址值
 			*variable_ptr = *value;
+			//设置refcount_gc
 			Z_SET_REFCOUNT_P(variable_ptr, refcount);
+			//设置is_ref_gc
 			Z_SET_ISREF_P(variable_ptr);
 			if (!is_tmp_var) {
+				//复制变量
 				zendi_zval_copy_ctor(*variable_ptr);
 			}
 			zendi_zval_dtor(garbage);
 			return variable_ptr;
 		}
 	} else {
+		//variable_ptr ref_count为1
 		if (Z_DELREF_P(variable_ptr)==0) {
 			if (!is_tmp_var) {
 				if (variable_ptr==value) {
 					Z_ADDREF_P(variable_ptr);
 				} else if (PZVAL_IS_REF(value)) {
+					//value是否为引用
 					garbage = *variable_ptr;
+					//将value的值赋给variable_ptr
 					*variable_ptr = *value;
+					//重置variable_ptr
 					INIT_PZVAL(variable_ptr);
+					//重新复制一份变量
 					zval_copy_ctor(variable_ptr);
 					zendi_zval_dtor(garbage);
 					return variable_ptr;
 				} else {
+					//value refcount++
 					Z_ADDREF_P(value);
+					//将variable_ptr_ptr指针指向value
 					*variable_ptr_ptr = value;
+					//判断variable_ptr_ptr之前是否有定义,
 					if (variable_ptr != &EG(uninitialized_zval)) {
+						//如果之前有定义，则从垃圾回收机制中移除
 						GC_REMOVE_ZVAL_FROM_BUFFER(variable_ptr);
+						//执行zval回收函数
 						zval_dtor(variable_ptr);
+						//释放内存
 						efree(variable_ptr);
 					}
 					return value;
@@ -719,13 +734,18 @@ static inline zval* zend_assign_to_variable(zval **variable_ptr_ptr, zval *value
 				return variable_ptr;
 			}
 		} else { /* we need to split */
+			//variable_ptr的refcount_gc>1
 			GC_ZVAL_CHECK_POSSIBLE_ROOT(*variable_ptr_ptr);
 			if (!is_tmp_var) {
 				//判断是否需要分离变量
 				if (PZVAL_IS_REF(value) && Z_REFCOUNT_P(value) > 0) {
+					//value的is_ref_gc=1 & is_refcount_gc>0
+
+					//为variable_ptr重新分配内存
 					ALLOC_ZVAL(variable_ptr);
 					*variable_ptr_ptr = variable_ptr;
 					*variable_ptr = *value;
+					//设置variable_ptr的引用计数
 					Z_SET_REFCOUNT_P(variable_ptr, 1);
 					zval_copy_ctor(variable_ptr);
 				} else {

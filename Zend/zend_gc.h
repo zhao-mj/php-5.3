@@ -189,8 +189,10 @@ static zend_always_inline void gc_zval_check_possible_root(zval *z TSRMLS_DC)
 
 static zend_always_inline void gc_remove_from_buffer(gc_root_buffer *root TSRMLS_DC)
 {
+	//将root从链表中移除
 	root->next->prev = root->prev;
 	root->prev->next = root->next;
+	//修改GC_G(unused)指向
 	root->prev = GC_G(unused);
 	GC_G(unused) = root;
 	GC_BENCH_DEC(root_buf_length);
