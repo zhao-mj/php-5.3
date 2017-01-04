@@ -450,6 +450,7 @@ PHP_FUNCTION(spl_autoload_register)
 	}
 
 	if (ZEND_NUM_ARGS()) {
+		//如果注册的参数为spl_autoload_call，则退出
 		if (Z_TYPE_P(zcallable) == IS_STRING) {
 			if (Z_STRLEN_P(zcallable) == sizeof("spl_autoload_call") - 1) {
 				if (!zend_binary_strcasecmp(Z_STRVAL_P(zcallable), sizeof("spl_autoload_call"), "spl_autoload_call", sizeof("spl_autoload_call"))) {
@@ -515,7 +516,7 @@ PHP_FUNCTION(spl_autoload_register)
 		lc_name = safe_emalloc(func_name_len, 1, sizeof(long) + 1);
 		zend_str_tolower_copy(lc_name, func_name, func_name_len);
 		efree(func_name);
-
+		//对象方法
 		if (Z_TYPE_P(zcallable) == IS_OBJECT) {
 			alfi.closure = zcallable;
 			Z_ADDREF_P(zcallable);
@@ -526,7 +527,7 @@ PHP_FUNCTION(spl_autoload_register)
 			func_name_len += sizeof(zend_object_handle);
 			lc_name[func_name_len] = '\0';
 		}
-
+		//判断lc_name是否在SPL_G(autoload_functions)中
 		if (SPL_G(autoload_functions) && zend_hash_exists(SPL_G(autoload_functions), (char*)lc_name, func_name_len+1)) {
 			if (alfi.closure) {
 				Z_DELREF_P(zcallable);
@@ -547,6 +548,7 @@ PHP_FUNCTION(spl_autoload_register)
 		}
 
 		if (!SPL_G(autoload_functions)) {
+			//初始化SPL_G(autoload_functions)
 			ALLOC_HASHTABLE(SPL_G(autoload_functions));
 			zend_hash_init(SPL_G(autoload_functions), 1, NULL, (dtor_func_t) autoload_func_info_dtor, 0);
 		}

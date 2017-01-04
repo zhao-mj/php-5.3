@@ -160,7 +160,7 @@ ZEND_API void gc_zval_possible_root(zval *zv TSRMLS_DC)
 				newRoot = GC_G(first_unused);
 				GC_G(first_unused)++;
 			} else {
-				//缓冲区已满
+				//gc未启用
 				if (!GC_G(gc_enabled)) {
 					GC_ZVAL_SET_BLACK(zv);
 					return;
@@ -217,6 +217,7 @@ ZEND_API void gc_zobj_possible_root(zval *zv TSRMLS_DC)
 				newRoot = GC_G(first_unused);
 				GC_G(first_unused)++;
 			} else {
+				//gc不可用
 				if (!GC_G(gc_enabled)) {
 					GC_ZVAL_SET_BLACK(zv);
 					return;

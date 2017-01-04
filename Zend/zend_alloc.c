@@ -413,21 +413,21 @@ typedef struct _zend_mm_free_block {
 #endif
 
 struct _zend_mm_heap {
-	int                 use_zend_alloc;
-	void               *(*_malloc)(size_t);
-	void                (*_free)(void*);
-	void               *(*_realloc)(void*, size_t);
-	size_t              free_bitmap;
-	size_t              large_free_bitmap;
-	size_t              block_size;
+	int                 use_zend_alloc; //是否使用zend内存管理
+	void               *(*_malloc)(size_t);//申请
+	void                (*_free)(void*);//释放
+	void               *(*_realloc)(void*, size_t); //重新分配内存
+	size_t              free_bitmap; //小内存块bit位图
+	size_t              large_free_bitmap;//大内存块bit位图
+	size_t              block_size;//block大小
 	size_t              compact_size;
-	zend_mm_segment    *segments_list;
-	zend_mm_storage    *storage;
+	zend_mm_segment    *segments_list; //segments内存链表
+	zend_mm_storage    *storage; 
 	size_t              real_size; //真实大小
-	size_t              real_peak; //峰值
-	size_t              limit;
-	size_t              size;
-	size_t              peak;
+	size_t              real_peak; //真实峰值
+	size_t              limit;//内存限制
+	size_t              size;//申请大小
+	size_t              peak;//申请大小峰值
 	size_t              reserve_size;
 	void               *reserve;
 	int                 overflow;
@@ -436,9 +436,9 @@ struct _zend_mm_heap {
 	unsigned int        cached;
 	zend_mm_free_block *cache[ZEND_MM_NUM_BUCKETS];
 #endif
-	zend_mm_free_block *free_buckets[ZEND_MM_NUM_BUCKETS*2];
-	zend_mm_free_block *large_free_buckets[ZEND_MM_NUM_BUCKETS];
-	zend_mm_free_block *rest_buckets[2];
+	zend_mm_free_block *free_buckets[ZEND_MM_NUM_BUCKETS*2];//小内存块指针
+	zend_mm_free_block *large_free_buckets[ZEND_MM_NUM_BUCKETS];//大内存块指针
+	zend_mm_free_block *rest_buckets[2];//rest内存块指针
 #if ZEND_MM_CACHE_STAT
 	struct {
 		int count;
@@ -904,7 +904,7 @@ static inline void zend_mm_init(zend_mm_heap *heap)
 		heap->cache_stat[i].count = 0;
 	}
 #endif
-	//此时，p指向第一个元素的prev_free_block属性的地址
+	//此时，p指向元素的prev_free_block属性的地址
 	p = ZEND_MM_SMALL_FREE_BUCKET(heap, 0);
 	/**
 	//参考文档：http://www.laruence.com/2011/11/09/2277.html
@@ -917,6 +917,7 @@ static inline void zend_mm_init(zend_mm_heap *heap)
 	for (i = 0; i < ZEND_MM_NUM_BUCKETS; i++) {
 		p->next_free_block = p;
 		p->prev_free_block = p;
+		//偏移两个小内存指针
 		p = (zend_mm_free_block*)((char*)p + sizeof(zend_mm_free_block*) * 2);
 		heap->large_free_buckets[i] = NULL;
 	}
