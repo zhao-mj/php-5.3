@@ -176,6 +176,8 @@ static void sig_handler(int signo) /* {{{ */
 
 	saved_errno = errno;
 	s = sig_chars[signo];
+	//主进程向sp[1]管道写入信号数据
+	//fpm_event.c的fpm_event_loop函数定义了从sp[0]管道读取内容的IO事件
 	write(sp[1], &s, sizeof(s));
 	errno = saved_errno;
 }
