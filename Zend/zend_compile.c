@@ -1183,6 +1183,7 @@ int zend_do_verify_access_types(const znode *current_access_type, const znode *n
 }
 /* }}} */
 
+//普通函数及类方法定义
 void zend_do_begin_function_declaration(znode *function_token, znode *function_name, int is_method, int return_reference, znode *fn_flags_znode TSRMLS_DC) /* {{{ */
 {
 	zend_op_array op_array;
@@ -1193,7 +1194,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 	char *lcname;
 	zend_bool orig_interactive;
 	ALLOCA_FLAG(use_heap)
-
+	//类方法
 	if (is_method) {
 		if (CG(active_class_entry)->ce_flags & ZEND_ACC_INTERFACE) {
 			if ((Z_LVAL(fn_flags_znode->u.constant) & ~(ZEND_ACC_STATIC|ZEND_ACC_PUBLIC))) {
@@ -1203,6 +1204,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 		}
 		fn_flags = Z_LVAL(fn_flags_znode->u.constant); /* must be done *after* the above check */
 	} else {
+		//普通函数
 		fn_flags = 0;
 	}
 	if ((fn_flags & ZEND_ACC_STATIC) && (fn_flags & ZEND_ACC_ABSTRACT) && !(CG(active_class_entry)->ce_flags & ZEND_ACC_INTERFACE)) {
@@ -1214,6 +1216,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 
 	orig_interactive = CG(interactive);
 	CG(interactive) = 0;
+	//重新初始化一个op_array,用于记录函数与类方法
 	init_op_array(&op_array, ZEND_USER_FUNCTION, INITIAL_OP_ARRAY_SIZE TSRMLS_CC);
 	CG(interactive) = orig_interactive;
 
@@ -1333,6 +1336,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 
 		efree(lcname);
 	} else {
+		//重新申请一个zend_op
 		zend_op *opline = get_next_op(CG(active_op_array) TSRMLS_CC);
 
 		if (CG(current_namespace)) {
@@ -2948,7 +2952,7 @@ ZEND_API void zend_do_implement_interface(zend_class_entry *ce, zend_class_entry
 	}
 }
 /* }}} */
-
+//向function_table注册函数
 ZEND_API int do_bind_function(zend_op *opline, HashTable *function_table, zend_bool compile_time) /* {{{ */
 {
 	zend_function *function;
@@ -2977,6 +2981,7 @@ ZEND_API int do_bind_function(zend_op *opline, HashTable *function_table, zend_b
 }
 /* }}} */
 
+//向EG(class_table)注册 class
 ZEND_API zend_class_entry *do_bind_class(const zend_op *opline, HashTable *class_table, zend_bool compile_time TSRMLS_DC) /* {{{ */
 {
 	zend_class_entry *ce, **pce;
@@ -4239,6 +4244,7 @@ void zend_do_fetch_static_variable(znode *varname, const znode *static_assignmen
 	} else {
 		INIT_ZVAL(*tmp);
 	}
+	//初始化CG(active_op_array)->static_variables
 	if (!CG(active_op_array)->static_variables) {
 		ALLOC_HASHTABLE(CG(active_op_array)->static_variables);
 		zend_hash_init(CG(active_op_array)->static_variables, 2, NULL, ZVAL_PTR_DTOR, 0);

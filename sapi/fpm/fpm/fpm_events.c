@@ -49,6 +49,7 @@ static void fpm_event_cleanup(int which, void *arg) /* {{{ */
 }
 /* }}} */
 
+//捕获信号
 static void fpm_got_signal(struct fpm_event_s *ev, short which, void *arg) /* {{{ */
 {
 	char c;
@@ -136,7 +137,7 @@ static struct fpm_event_s *fpm_event_queue_isset(struct fpm_event_queue_s *queue
 	return NULL;
 }
 /* }}} */
-
+//添加事件到队列中，如果为IO事件，还需调用module->add
 static int fpm_event_queue_add(struct fpm_event_queue_s **queue, struct fpm_event_s *ev) /* {{{ */
 {
 	struct fpm_event_queue_s *elt;
@@ -173,7 +174,7 @@ static int fpm_event_queue_add(struct fpm_event_queue_s **queue, struct fpm_even
 	return 0;	
 }
 /* }}} */
-
+//从队列中移除事件，如果是IO事件，需调用module->remove进行移除
 static int fpm_event_queue_del(struct fpm_event_queue_s **queue, struct fpm_event_s *ev) /* {{{ */
 {
 	struct fpm_event_queue_s *q;
@@ -460,6 +461,7 @@ void fpm_event_loop(int err) /* {{{ */
 }
 /* }}} */
 
+//执行回调函数
 void fpm_event_fire(struct fpm_event_s *ev) /* {{{ */
 {
 	if (!ev || !ev->callback) {
@@ -469,7 +471,7 @@ void fpm_event_fire(struct fpm_event_s *ev) /* {{{ */
 	(*ev->callback)( (struct fpm_event_s *) ev, ev->which, ev->arg);	
 }
 /* }}} */
-
+//注册事件信息
 int fpm_event_set(struct fpm_event_s *ev, int fd, int flags, void (*callback)(struct fpm_event_s *, short, void *), void *arg) /* {{{ */
 {
 	if (!ev || !callback || fd < -1) {
@@ -483,7 +485,7 @@ int fpm_event_set(struct fpm_event_s *ev, int fd, int flags, void (*callback)(st
 	return 0;
 }
 /* }}} */
-
+//添加事件
 int fpm_event_add(struct fpm_event_s *ev, unsigned long int frequency) /* {{{ */
 {
 	struct timeval now;
@@ -526,7 +528,7 @@ int fpm_event_add(struct fpm_event_s *ev, unsigned long int frequency) /* {{{ */
 	return 0;
 }
 /* }}} */
-
+//删除事件
 int fpm_event_del(struct fpm_event_s *ev) /* {{{ */
 {
 	if (ev->index >= 0 && fpm_event_queue_del(&fpm_event_queue_fd, ev) != 0) {
