@@ -67,6 +67,7 @@
 ; Available units: s(econds), m(inutes), h(ours), or d(ays)
 ; Default Unit: seconds
 ; Default Value: 0
+; 主进程等待子进程退出的最大时间
 ;process_control_timeout = 0
 
 ; The maximum number of processes FPM will fork. This has been design to control

@@ -56,7 +56,7 @@ static void fpm_pctl_action(struct fpm_event_s *ev, short which, void *arg) /* {
 	fpm_pctl(FPM_PCTL_STATE_UNSPECIFIED, FPM_PCTL_ACTION_TIMEOUT);
 }
 /* }}} */
-
+//定义一个定时事件，检查所有子进程是否已退出
 static int fpm_pctl_timeout_set(int sec) /* {{{ */
 {
 	fpm_event_set_timer(&pctl_event, 0, &fpm_pctl_action, NULL);
@@ -173,8 +173,9 @@ void fpm_pctl_kill_all(int signo) /* {{{ */
 static void fpm_pctl_action_next() /* {{{ */
 {
 	int sig, timeout;
-
+	//判断子进程是否都已退出，如果退出
 	if (!fpm_globals.running_children) {
+		//主进程退出
 		fpm_pctl_action_last();
 	}
 
@@ -186,6 +187,7 @@ static void fpm_pctl_action_next() /* {{{ */
 		}
 		timeout = fpm_global_config.process_control_timeout;
 	} else {
+		//FPM_PCTL_ACTION_TIMEOUT
 		if (fpm_signal_sent == SIGQUIT) {
 			sig = SIGTERM;
 		} else {
@@ -193,9 +195,10 @@ static void fpm_pctl_action_next() /* {{{ */
 		}
 		timeout = 1;
 	}
-
+	//向所有子进程发送sig信号
 	fpm_pctl_kill_all(sig);
 	fpm_signal_sent = sig;
+	//添加一个定时事件监控子进程是否全部退出
 	fpm_pctl_timeout_set(timeout);
 }
 /* }}} */
