@@ -22470,7 +22470,7 @@ static int ZEND_FASTCALL  ZEND_CAST_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 
 	ZEND_VM_NEXT_OPCODE();
 }
-
+//inluce、requeire、inclue_once、require_once
 static int ZEND_FASTCALL  ZEND_INCLUDE_OR_EVAL_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 {
 	zend_op *opline = EX(opline);
@@ -22503,8 +22503,10 @@ static int ZEND_FASTCALL  ZEND_INCLUDE_OR_EVAL_SPEC_CV_HANDLER(ZEND_OPCODE_HANDL
 			case ZEND_REQUIRE_ONCE: {
 					zend_file_handle file_handle;
 					char *resolved_path;
-
+					//zend_resolve_path=> main/main.c php_resolve_path_for_zend 
 					resolved_path = zend_resolve_path(Z_STRVAL_P(inc_filename), Z_STRLEN_P(inc_filename) TSRMLS_CC);
+					//include_once、require_once
+					//判断文件是否已加载
 					if (resolved_path) {
 						failure_retval = zend_hash_exists(&EG(included_files), resolved_path, strlen(resolved_path)+1);
 					} else {
@@ -22518,8 +22520,10 @@ static int ZEND_FASTCALL  ZEND_INCLUDE_OR_EVAL_SPEC_CV_HANDLER(ZEND_OPCODE_HANDL
 						if (!file_handle.opened_path) {
 							file_handle.opened_path = estrdup(resolved_path);
 						}
-
+						//将file_handle添加到&EG(included_files)哈希表中
+						//思考：为什么此段代码不用compile_filename替换？ 因为compile_filename解析文件失败或文件不存在的情况下，compile_filename不会将文件添加值EG(included_files)中。
 						if (zend_hash_add_empty_element(&EG(included_files), file_handle.opened_path, strlen(file_handle.opened_path)+1)==SUCCESS) {
+							//解析获取new_op_array
 							new_op_array = zend_compile_file(&file_handle, (Z_LVAL(opline->op2.u.constant)==ZEND_INCLUDE_ONCE?ZEND_INCLUDE:ZEND_REQUIRE) TSRMLS_CC);
 							zend_destroy_file_handle(&file_handle TSRMLS_CC);
 						} else {
@@ -22547,7 +22551,9 @@ static int ZEND_FASTCALL  ZEND_INCLUDE_OR_EVAL_SPEC_CV_HANDLER(ZEND_OPCODE_HANDL
 
 					new_op_array = zend_compile_string(inc_filename, eval_desc TSRMLS_CC);
 					efree(eval_desc);
+
 				}
+
 				break;
 			EMPTY_SWITCH_DEFAULT_CASE()
 		}
@@ -22557,7 +22563,8 @@ static int ZEND_FASTCALL  ZEND_INCLUDE_OR_EVAL_SPEC_CV_HANDLER(ZEND_OPCODE_HANDL
 	}
 
 	EX_T(opline->result.u.var).var.ptr_ptr = &EX_T(opline->result.u.var).var.ptr;
-	if (new_op_array && !EG(exception)) {
+	//解析文件成功
+	if (new_op_array && !EG(exception)) {		
 		EX(original_return_value) = EG(return_value_ptr_ptr);
 		EG(return_value_ptr_ptr) = return_value_used ? EX_T(opline->result.u.var).var.ptr_ptr : NULL;
 		EG(active_op_array) = new_op_array;

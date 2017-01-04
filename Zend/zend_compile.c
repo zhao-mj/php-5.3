@@ -4352,7 +4352,7 @@ void zend_do_cast(znode *result, const znode *expr, int type TSRMLS_DC) /* {{{ *
 	*result = opline->result;
 }
 /* }}} */
-
+//include、require、include_once、require_once调用
 void zend_do_include_or_eval(int type, znode *result, const znode *op1 TSRMLS_DC) /* {{{ */
 {
 	zend_do_extended_fcall_begin(TSRMLS_C);
