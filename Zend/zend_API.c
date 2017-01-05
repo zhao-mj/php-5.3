@@ -3114,6 +3114,7 @@ ZEND_API int zend_declare_property_ex(zend_class_entry *ce, const char *name, in
 	if (!(access_type & ZEND_ACC_PPP_MASK)) {
 		access_type |= ZEND_ACC_PUBLIC;
 	}
+	//判断是否为静态变量
 	if (access_type & ZEND_ACC_STATIC) {
 		target_symbol_table = &ce->default_static_members;
 	} else {
@@ -3132,6 +3133,7 @@ ZEND_API int zend_declare_property_ex(zend_class_entry *ce, const char *name, in
 		}
 	}
 	switch (access_type & ZEND_ACC_PPP_MASK) {
+		//私有变量
 		case ZEND_ACC_PRIVATE: {
 				char *priv_name;
 				int priv_name_length;
@@ -3142,6 +3144,7 @@ ZEND_API int zend_declare_property_ex(zend_class_entry *ce, const char *name, in
 				property_info.name_length = priv_name_length;
 			}
 			break;
+		//
 		case ZEND_ACC_PROTECTED: {
 				char *prot_name;
 				int prot_name_length;
@@ -3152,6 +3155,7 @@ ZEND_API int zend_declare_property_ex(zend_class_entry *ce, const char *name, in
 				property_info.name_length = prot_name_length;
 			}
 			break;
+		//共有变量
 		case ZEND_ACC_PUBLIC:
 			if (ce->parent) {
 				char *prot_name;
@@ -3173,7 +3177,7 @@ ZEND_API int zend_declare_property_ex(zend_class_entry *ce, const char *name, in
 	property_info.doc_comment_len = doc_comment_len;
 
 	property_info.ce = ce;
-
+	//将属性添加值properties_info
 	zend_hash_update(&ce->properties_info, name, name_length + 1, &property_info, sizeof(zend_property_info), NULL);
 
 	return SUCCESS;

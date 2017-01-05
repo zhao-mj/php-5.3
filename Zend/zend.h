@@ -425,23 +425,23 @@ struct _zend_class_entry {
 	zend_bool constants_updated;
 	zend_uint ce_flags;
 
-	HashTable function_table;
-	HashTable default_properties;
-	HashTable properties_info;
-	HashTable default_static_members;
+	HashTable function_table; //类方法
+	HashTable default_properties; //默认属性
+	HashTable properties_info; //所有类属性
+	HashTable default_static_members; //静态属性
 	HashTable *static_members;
 	HashTable constants_table;
 	const struct _zend_function_entry *builtin_functions;
 
-	union _zend_function *constructor;
-	union _zend_function *destructor;
-	union _zend_function *clone;
-	union _zend_function *__get;
-	union _zend_function *__set;
+	union _zend_function *constructor; //构造函数
+	union _zend_function *destructor; //析构函数
+	union _zend_function *clone; //复制函数
+	union _zend_function *__get;//get
+	union _zend_function *__set; //set
 	union _zend_function *__unset;
 	union _zend_function *__isset;
-	union _zend_function *__call;
-	union _zend_function *__callstatic;
+	union _zend_function *__call; //在类方法不存在时调用
+	union _zend_function *__callstatic; //在类静态方法不存在时调用
 	union _zend_function *__tostring;
 	union _zend_function *serialize_func;
 	union _zend_function *unserialize_func;

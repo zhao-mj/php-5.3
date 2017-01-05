@@ -1210,7 +1210,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 	if ((fn_flags & ZEND_ACC_STATIC) && (fn_flags & ZEND_ACC_ABSTRACT) && !(CG(active_class_entry)->ce_flags & ZEND_ACC_INTERFACE)) {
 		zend_error(E_STRICT, "Static function %s%s%s() should not be abstract", is_method ? CG(active_class_entry)->name : "", is_method ? "::" : "", Z_STRVAL(function_name->u.constant));
 	}
-
+	//保存原来的CG(active_op_array)，以免zend_do_end_function_declaration调用时还原
 	function_token->u.op_array = CG(active_op_array);
 	lcname = zend_str_tolower_dup(name, name_len);
 
@@ -1234,7 +1234,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 		if (zend_hash_add(&CG(active_class_entry)->function_table, lcname, name_len+1, &op_array, sizeof(zend_op_array), (void **) &CG(active_op_array)) == FAILURE) {
 			zend_error(E_COMPILE_ERROR, "Cannot redeclare %s::%s()", CG(active_class_entry)->name, name);
 		}
-
+		//抽象类
 		if (fn_flags & ZEND_ACC_ABSTRACT) {
 			CG(active_class_entry)->ce_flags |= ZEND_ACC_IMPLICIT_ABSTRACT_CLASS;
 		}
@@ -1243,7 +1243,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 			fn_flags |= ZEND_ACC_PUBLIC;
 		}
 
-		if (CG(active_class_entry)->ce_flags & ZEND_ACC_INTERFACE) {
+		if (CG(active_class_entry)->ce_flags & ZEND_ACC_INTERFACE) { //interface
 			if ((name_len == sizeof(ZEND_CALL_FUNC_NAME)-1) && (!memcmp(lcname, ZEND_CALL_FUNC_NAME, sizeof(ZEND_CALL_FUNC_NAME)-1))) {
 				if (fn_flags & ((ZEND_ACC_PPP_MASK | ZEND_ACC_STATIC) ^ ZEND_ACC_PUBLIC)) {
 					zend_error(E_WARNING, "The magic method __call() must have public visibility and cannot be static");
@@ -1273,7 +1273,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 					zend_error(E_WARNING, "The magic method __toString() must have public visibility and cannot be static");
 				}
 			}
-		} else {
+		} else { //普通类
 			char *class_lcname;
 			
 			class_lcname = do_alloca(CG(active_class_entry)->name_length + 1, use_heap);
@@ -1281,10 +1281,12 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 			/* Improve after RC: cache the lowercase class name */
 
 			if ((CG(active_class_entry)->name_length == name_len) && (!memcmp(class_lcname, lcname, name_len))) {
+				//如果类名与方法名相同且未设置CG(active_class_entry)->constructor，则将该方法绑定到 constructor
 				if (!CG(active_class_entry)->constructor) {
 					CG(active_class_entry)->constructor = (zend_function *) CG(active_op_array);
 				}
 			} else if ((name_len == sizeof(ZEND_CONSTRUCTOR_FUNC_NAME)-1) && (!memcmp(lcname, ZEND_CONSTRUCTOR_FUNC_NAME, sizeof(ZEND_CONSTRUCTOR_FUNC_NAME)))) {
+				//优先使用__construct,如果CG(active_class_entry)->constructor已定义，则抛出E_STRICT异常
 				if (CG(active_class_entry)->constructor) {
 					zend_error(E_STRICT, "Redefining already defined constructor for class %s", CG(active_class_entry)->name);
 				}
@@ -1465,6 +1467,7 @@ void zend_do_end_function_declaration(const znode *function_token TSRMLS_DC) /* 
 	}
 
 	CG(active_op_array)->line_end = zend_get_compiled_lineno(TSRMLS_C);
+	//还原至原来的op_array
 	CG(active_op_array) = function_token->u.op_array;
 
 
@@ -2994,6 +2997,7 @@ ZEND_API zend_class_entry *do_bind_class(const zend_op *opline, HashTable *class
 	}
 	ce->refcount++;
 	if (zend_hash_add(class_table, opline->op2.u.constant.value.str.val, opline->op2.u.constant.value.str.len+1, &ce, sizeof(zend_class_entry *), NULL)==FAILURE) {
+		//判断是否重复定义
 		ce->refcount--;
 		if (!compile_time) {
 			/* If we're in compile time, in practice, it's quite possible
@@ -3387,7 +3391,7 @@ void zend_do_default_before_statement(const znode *case_list, znode *default_tok
 	CG(active_op_array)->opcodes[case_list->u.opline_num].op1.u.opline_num = next_op_number;
 }
 /* }}} */
-
+//定义类(class)调用方法
 void zend_do_begin_class_declaration(const znode *class_token, znode *class_name, const znode *parent_class_name TSRMLS_DC) /* {{{ */
 {
 	zend_op *opline;
@@ -3404,6 +3408,7 @@ void zend_do_begin_class_declaration(const znode *class_token, znode *class_name
 
 	lcname = zend_str_tolower_dup(class_name->u.constant.value.str.val, class_name->u.constant.value.str.len);
 
+	//不能使用self和parent作为类名
 	if (!(strcmp(lcname, "self") && strcmp(lcname, "parent"))) {
 		efree(lcname);
 		zend_error(E_COMPILE_ERROR, "Cannot use '%s' as class name as it is reserved", class_name->u.constant.value.str.val);
@@ -3448,7 +3453,9 @@ void zend_do_begin_class_declaration(const znode *class_token, znode *class_name
 	new_class_entry->line_start = class_token->u.opline_num;
 	new_class_entry->ce_flags |= class_token->u.EA.type;
 
+	//判断使用extends集成
 	if (parent_class_name && parent_class_name->op_type != IS_UNUSED) {
+		//类名不能使用self、parent、static
 		switch (parent_class_name->u.EA.type) {
 			case ZEND_FETCH_CLASS_SELF:
 				zend_error(E_COMPILE_ERROR, "Cannot use 'self' as class name as it is reserved");
@@ -3484,6 +3491,7 @@ void zend_do_begin_class_declaration(const znode *class_token, znode *class_name
 	opline->op2.u.constant.value.str.len = new_class_entry->name_length;
 	
 	zend_hash_update(CG(class_table), opline->op1.u.constant.value.str.val, opline->op1.u.constant.value.str.len, &new_class_entry, sizeof(zend_class_entry *), NULL);
+	//记录当前类
 	CG(active_class_entry) = new_class_entry;
 
 	opline->result.u.var = get_temporary_variable(CG(active_op_array));
@@ -3508,23 +3516,25 @@ static void do_verify_abstract_class(TSRMLS_D) /* {{{ */
 	SET_UNUSED(opline->op2);
 }
 /* }}} */
-
+//定义类结束时调用
 void zend_do_end_class_declaration(const znode *class_token, const znode *parent_token TSRMLS_DC) /* {{{ */
 {
 	zend_class_entry *ce = CG(active_class_entry);
-
+	//constuctor不能为静态方法
 	if (ce->constructor) {
 		ce->constructor->common.fn_flags |= ZEND_ACC_CTOR;
 		if (ce->constructor->common.fn_flags & ZEND_ACC_STATIC) {
 			zend_error(E_COMPILE_ERROR, "Constructor %s::%s() cannot be static", ce->name, ce->constructor->common.function_name);
 		}
 	}
+	//destructor不能为静态方法
 	if (ce->destructor) {
 		ce->destructor->common.fn_flags |= ZEND_ACC_DTOR;
 		if (ce->destructor->common.fn_flags & ZEND_ACC_STATIC) {
 			zend_error(E_COMPILE_ERROR, "Destructor %s::%s() cannot be static", ce->name, ce->destructor->common.function_name);
 		}
 	}
+	//clone不能为静态方法
 	if (ce->clone) {
 		ce->clone->common.fn_flags |= ZEND_ACC_CLONE;
 		if (ce->clone->common.fn_flags & ZEND_ACC_STATIC) {
@@ -3554,6 +3564,7 @@ void zend_do_end_class_declaration(const znode *class_token, const znode *parent
 }
 /* }}} */
 
+//interface接口
 void zend_do_implements_interface(znode *interface_name TSRMLS_DC) /* {{{ */
 {
 	zend_op *opline;
@@ -3629,7 +3640,7 @@ ZEND_API int zend_unmangle_property_name(char *mangled_property, int len, char *
 	return SUCCESS;
 }
 /* }}} */
-
+//定义类属性
 void zend_do_declare_property(const znode *var_name, const znode *value, zend_uint access_type TSRMLS_DC) /* {{{ */
 {
 	zval *property;
@@ -3670,7 +3681,7 @@ void zend_do_declare_property(const znode *var_name, const znode *value, zend_ui
 		CG(doc_comment) = NULL;
 		CG(doc_comment_len) = 0;
 	}
-
+	//注册变量属性
 	zend_declare_property_ex(CG(active_class_entry), var_name->u.constant.value.str.val, var_name->u.constant.value.str.len, property, access_type, comment, comment_len TSRMLS_CC);
 	efree(var_name->u.constant.value.str.val);
 }
