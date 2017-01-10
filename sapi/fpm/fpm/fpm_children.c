@@ -186,7 +186,14 @@ void fpm_children_bury() /* {{{ */
 		int restart_child = 1;
 
 		child = fpm_child_find(pid);
-
+		/*
+		WIFEXITED(status)如果子进程正常结束则为非0值。
+		WEXITSTATUS(status)取得子进程exit()返回的结束代码，一般会先用WIFEXITED 来判断是否正常结束才能使用此宏。
+		WIFSIGNALED(status)如果子进程是因为信号而结束则此宏值为真
+		WTERMSIG(status)取得子进程因信号而中止的信号代码，一般会先用WIFSIGNALED 来判断后才使用此宏。
+		WIFSTOPPED(status)如果子进程处于暂停执行情况则此宏值为真。一般只有使用WUNTRACED 时才会有此情况。
+		WSTOPSIG(status)取得引发子进程暂停的信号代码，
+		*/
 		if (WIFEXITED(status)) {
 
 			snprintf(buf, sizeof(buf), "with code %d", WEXITSTATUS(status));
@@ -391,6 +398,7 @@ int fpm_children_make(struct fpm_worker_pool_s *wp, int in_event_loop, int nb_to
 	 *   - (fpm_global_config.process_max < 1 || fpm_globals.running_children < fpm_global_config.process_max):
 	 *     if fpm_global_config.process_max is set, FPM has not fork this number of processes (globaly)
 	 */
+	//当执行restart、stop、reload命令时，fpm_pctl_can_spawn_children()为false
 	while (fpm_pctl_can_spawn_children() && wp->running_children < max && (fpm_global_config.process_max < 1 || fpm_globals.running_children < fpm_global_config.process_max)) {
 
 		warned = 0;

@@ -98,6 +98,23 @@ static void fpm_pctl_exec() /* {{{ */
 	);
 
 	fpm_cleanups_run(FPM_CLEANUP_PARENT_EXEC);
+	/*
+	头文件：#include <unistd.h>
+	定义函数：
+	int execvp(const char *file ,char * const argv []);
+	函数说明：
+	execvp()会从PATH 环境变量所指的目录中查找符合参数file 的文件名，找到后便执行该文件，然后将第二个参数argv传给该欲执行的文件。
+	返回值：
+	如果执行成功则函数不会返回，执行失败则直接返回-1，失败原因存于errno中。
+	范例:
+	#include <unistd.h>
+	main()
+	{
+	    char * argv[] = {"ls", "-al", "/etc/passwd", 0};
+	    execvp("ls", argv);
+	}
+	*/
+	//重新执行上一次启动命令
 	execvp(saved_argv[0], saved_argv);
 	zlog(ZLOG_SYSERROR, "failed to reload: execvp() failed");
 	exit(FPM_EXIT_SOFTWARE);
@@ -238,6 +255,7 @@ void fpm_pctl(int new_state, int action) /* {{{ */
 			fpm_pctl_action_next();
 			break;
 		case FPM_PCTL_ACTION_LAST_CHILD_EXITED :
+			//最后一个子进程退出
 			fpm_pctl_action_last();
 			break;
 

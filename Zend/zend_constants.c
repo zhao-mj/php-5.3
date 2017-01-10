@@ -222,7 +222,7 @@ ZEND_API void zend_register_string_constant(const char *name, uint name_len, cha
 	zend_register_stringl_constant(name, name_len, strval, strlen(strval), flags, module_number TSRMLS_CC);
 }
 
-
+//获取常量值
 ZEND_API int zend_get_constant(const char *name, uint name_len, zval *result TSRMLS_DC)
 {
 	zend_constant *c;
@@ -437,6 +437,7 @@ ZEND_API int zend_register_constant(zend_constant *c TSRMLS_DC)
 	}
 
 	/* Check if the user is trying to define the internal pseudo constant name __COMPILER_HALT_OFFSET__ */
+	//常量名不能为__COMPILER_HALT_OFFSET__
 	if ((c->name_len == sizeof("__COMPILER_HALT_OFFSET__")
 		&& !memcmp(name, "__COMPILER_HALT_OFFSET__", sizeof("__COMPILER_HALT_OFFSET__")-1))
 		|| zend_hash_add(EG(zend_constants), name, c->name_len, (void *) c, sizeof(zend_constant), NULL)==FAILURE) {

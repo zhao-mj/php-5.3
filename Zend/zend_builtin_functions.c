@@ -621,6 +621,7 @@ ZEND_FUNCTION(error_reporting)
 
 /* {{{ proto bool define(string constant_name, mixed value, boolean case_insensitive=false)
    Define a new constant */
+//常量定义
 ZEND_FUNCTION(define)
 {
 	char *name;
@@ -634,7 +635,7 @@ ZEND_FUNCTION(define)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz|b", &name, &name_len, &val, &non_cs) == FAILURE) {
 		return;
 	}
-
+	//大小是否明感
 	if(non_cs) {
 		case_sensitive = 0;
 	}
@@ -684,7 +685,9 @@ repeat:
 	c.flags = case_sensitive; /* non persistent */
 	c.name = zend_strndup(name, name_len);
 	c.name_len = name_len+1;
+	//标记用户定义的常量
 	c.module_number = PHP_USER_CONSTANT;
+	//代码位于：zend_constants.c
 	if (zend_register_constant(&c TSRMLS_CC) == SUCCESS) {
 		RETURN_TRUE;
 	} else {
