@@ -52,6 +52,7 @@ int fpm_scoreboard_init_main() /* {{{ */
 			return -1;
 		}
 		//为scoreboard分配空间，空间的大小根据 wp->config->pm_max_children值而定
+		//(wp->config->pm_max_children - 1) * sizeof(struct fpm_scoreboard_proc_s *) ： scoreboard->procs占用的空间
 		wp->scoreboard = fpm_shm_alloc(sizeof(struct fpm_scoreboard_s) + (wp->config->pm_max_children - 1) * sizeof(struct fpm_scoreboard_proc_s *));
 		if (!wp->scoreboard) {
 			return -1;

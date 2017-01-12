@@ -2594,12 +2594,14 @@ ZEND_API char *zend_strndup(const char *s, uint length)
 ZEND_API int zend_set_memory_limit(size_t memory_limit)
 {
 	TSRMLS_FETCH();
-
+	//设置limit限制
 	AG(mm_heap)->limit = (memory_limit >= AG(mm_heap)->block_size) ? memory_limit : AG(mm_heap)->block_size;
 
 	return SUCCESS;
 }
-
+//获取系统分配的内存代销
+//real_usage=1 ：系统真正分配的内存块大小
+//real_usage=0 : 系统向内存块申请的大小
 ZEND_API size_t zend_memory_usage(int real_usage TSRMLS_DC)
 {
 	if (real_usage) {
