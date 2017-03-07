@@ -2207,7 +2207,7 @@ static zend_class_entry *do_register_internal_class(zend_class_entry *orig_class
 	zend_initialize_class_data(class_entry, 0 TSRMLS_CC);
 	class_entry->ce_flags = ce_flags;
 	class_entry->module = EG(current_module);
-
+	//定义类方法
 	if (class_entry->builtin_functions) {
 		zend_register_functions(class_entry, class_entry->builtin_functions, &class_entry->function_table, MODULE_PERSISTENT TSRMLS_CC);
 	}
@@ -3116,8 +3116,10 @@ ZEND_API int zend_declare_property_ex(zend_class_entry *ce, const char *name, in
 	}
 	//判断是否为静态变量
 	if (access_type & ZEND_ACC_STATIC) {
+		//静态变量
 		target_symbol_table = &ce->default_static_members;
 	} else {
+		//普通变量
 		target_symbol_table = &ce->default_properties;
 	}
 	if (ce->type & ZEND_INTERNAL_CLASS) {
@@ -3144,7 +3146,7 @@ ZEND_API int zend_declare_property_ex(zend_class_entry *ce, const char *name, in
 				property_info.name_length = priv_name_length;
 			}
 			break;
-		//
+		//protected
 		case ZEND_ACC_PROTECTED: {
 				char *prot_name;
 				int prot_name_length;

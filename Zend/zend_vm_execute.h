@@ -10909,7 +10909,7 @@ static int ZEND_FASTCALL zend_isset_isempty_dim_prop_obj_handler_SPEC_VAR_CONST(
 	if (IS_VAR != IS_VAR || container) {
 
 		zval *offset = &opline->op2.u.constant;
-
+		//数组
 		if (Z_TYPE_PP(container) == IS_ARRAY && !prop_dim) {
 			HashTable *ht;
 			int isset = 0;
@@ -10967,6 +10967,7 @@ static int ZEND_FASTCALL zend_isset_isempty_dim_prop_obj_handler_SPEC_VAR_CONST(
 				MAKE_REAL_ZVAL_PTR(offset);
 			}
 			if (prop_dim) {
+				//isset($obj->属性) 判断
 				if (Z_OBJ_HT_P(*container)->has_property) {
 					result = Z_OBJ_HT_P(*container)->has_property(*container, offset, (opline->extended_value == ZEND_ISEMPTY) TSRMLS_CC);
 				} else {
