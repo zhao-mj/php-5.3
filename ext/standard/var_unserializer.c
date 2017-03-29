@@ -370,7 +370,7 @@ static inline int object_common2(UNSERIALIZE_PARAMETER, long elements)
 	if (!process_nested_data(UNSERIALIZE_PASSTHRU, Z_OBJPROP_PP(rval), elements, 1)) {
 		return 0;
 	}
-
+	//对象调用__wakeup
 	if (Z_OBJCE_PP(rval) != PHP_IC_ENTRY &&
 		zend_hash_exists(&Z_OBJCE_PP(rval)->function_table, "__wakeup", sizeof("__wakeup"))) {
 		INIT_PZVAL(&fname);
