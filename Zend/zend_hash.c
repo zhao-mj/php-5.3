@@ -1130,9 +1130,11 @@ ZEND_API int zend_hash_get_current_key_ex(const HashTable *ht, char **str_index,
 			if (str_length) {
 				*str_length = p->nKeyLength;
 			}
+			//字符串类型
 			return HASH_KEY_IS_STRING;
 		} else {
 			*num_index = p->h;
+			//整型
 			return HASH_KEY_IS_LONG;
 		}
 	}
@@ -1425,7 +1427,7 @@ ZEND_API int zend_hash_sort(HashTable *ht, sort_func_t sort_func,
 	return SUCCESS;
 }
 
-
+//比较hashtable大小
 ZEND_API int zend_hash_compare(HashTable *ht1, HashTable *ht2, compare_func_t compar, zend_bool ordered TSRMLS_DC)
 {
 	Bucket *p1, *p2 = NULL;
@@ -1438,6 +1440,7 @@ ZEND_API int zend_hash_compare(HashTable *ht1, HashTable *ht2, compare_func_t co
 	HASH_PROTECT_RECURSION(ht1); 
 	HASH_PROTECT_RECURSION(ht2); 
 
+	//比较ht1与ht2元素个数，个数多的最大
 	result = ht1->nNumOfElements - ht2->nNumOfElements;
 	if (result!=0) {
 		HASH_UNPROTECT_RECURSION(ht1); 
@@ -1449,7 +1452,7 @@ ZEND_API int zend_hash_compare(HashTable *ht1, HashTable *ht2, compare_func_t co
 	if (ordered) {
 		p2 = ht2->pListHead;
 	}
-
+	//如果两者的元素一样多，然后就比较它们各自的第一个元素,依此类推
 	while (p1) {
 		if (ordered && !p2) {
 			HASH_UNPROTECT_RECURSION(ht1); 
@@ -1511,7 +1514,9 @@ ZEND_API int zend_hash_compare(HashTable *ht1, HashTable *ht2, compare_func_t co
 	return 0;
 }
 
-
+//寻找hash表最大或最小值
+//compar : 比较函数
+//flag: 1=取最大值 0=取最小值
 ZEND_API int zend_hash_minmax(const HashTable *ht, compare_func_t compar, int flag, void **pData TSRMLS_DC)
 {
 	Bucket *p, *res;

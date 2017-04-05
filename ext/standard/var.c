@@ -97,23 +97,29 @@ PHPAPI void php_var_dump(zval **struc, int level TSRMLS_DC) /* {{{ */
 	}
 
 	switch (Z_TYPE_PP(struc)) {
+		//布尔型
 	case IS_BOOL:
 		php_printf("%sbool(%s)\n", COMMON, Z_LVAL_PP(struc) ? "true" : "false");
 		break;
+		//空
 	case IS_NULL:
 		php_printf("%sNULL\n", COMMON);
 		break;
+		//整型
 	case IS_LONG:
 		php_printf("%sint(%ld)\n", COMMON, Z_LVAL_PP(struc));
 		break;
+		//浮点型
 	case IS_DOUBLE:
 		php_printf("%sfloat(%.*G)\n", COMMON, (int) EG(precision), Z_DVAL_PP(struc));
 		break;
+		//字符串
 	case IS_STRING:
 		php_printf("%sstring(%d) \"", COMMON, Z_STRLEN_PP(struc));
 		PHPWRITE(Z_STRVAL_PP(struc), Z_STRLEN_PP(struc));
 		PUTS("\"\n");
 		break;
+		//数组
 	case IS_ARRAY:
 		myht = Z_ARRVAL_PP(struc);
 		if (++myht->nApplyCount > 1) {
@@ -125,6 +131,7 @@ PHPAPI void php_var_dump(zval **struc, int level TSRMLS_DC) /* {{{ */
 		php_element_dump_func = php_array_element_dump;
 		is_temp = 0;
 		goto head_done;
+		//对象
 	case IS_OBJECT:
 		myht = Z_OBJDEBUG_PP(struc, is_temp);
 		if (myht && ++myht->nApplyCount > 1) {
@@ -167,6 +174,7 @@ head_done:
 
 /* {{{ proto void var_dump(mixed var)
    Dumps a string representation of variable to output */
+//var_dump函数
 PHP_FUNCTION(var_dump)
 {
 	zval ***args;
@@ -176,7 +184,8 @@ PHP_FUNCTION(var_dump)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "+", &args, &argc) == FAILURE) {
 		return;
 	}
-
+	//var_dump(参数1,参数2,参数3)
+	//var_dump输出多个参数
 	for (i = 0; i < argc; i++) {
 		php_var_dump(args[i], 1 TSRMLS_CC);
 	}

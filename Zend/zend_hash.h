@@ -69,7 +69,7 @@ typedef struct _hashtable {
 	uint nTableMask;	/* 等于nTableSize -1, hash码 用于快速定位 */
 	uint nNumOfElements;	/* HashTable中实际元素的个数 */
 	ulong nNextFreeElement;	/* 下个空闲可用位置的数字索引 */
-	Bucket *pInternalPointer;	/* Used for element traversal */
+	Bucket *pInternalPointer;	//用于元素遍历 /* Used for element traversal */
 	Bucket *pListHead;   /* 头元素, 用于线性遍历 */
 	Bucket *pListTail;   /* 尾元素, 用于线性遍历 */
 	Bucket **arBuckets;
