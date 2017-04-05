@@ -359,7 +359,7 @@ ZEND_API char *zend_get_type_by_const(int type);
 #ifndef ZEND_WIN32
 #define DLEXPORT
 #endif
-
+//数组初始化函数
 #define array_init(arg)			_array_init((arg), 0 ZEND_FILE_LINE_CC)
 #define array_init_size(arg, size) _array_init((arg), (size) ZEND_FILE_LINE_CC)
 #define object_init(arg)		_object_init((arg) ZEND_FILE_LINE_CC TSRMLS_CC)
