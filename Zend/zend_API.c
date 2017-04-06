@@ -433,7 +433,7 @@ static char *zend_parse_arg_impl(int arg_num, zval **arg, va_list *va, char **sp
 				}
 			}
 			break;
-
+		//bool型
 		case 'b':
 			{
 				zend_bool *p = va_arg(*va, zend_bool *);
@@ -455,7 +455,7 @@ static char *zend_parse_arg_impl(int arg_num, zval **arg, va_list *va, char **sp
 				}
 			}
 			break;
-
+		//资源类型
 		case 'r':
 			{
 				zval **p = va_arg(*va, zval **);
@@ -470,6 +470,7 @@ static char *zend_parse_arg_impl(int arg_num, zval **arg, va_list *va, char **sp
 				}
 			}
 			break;
+		//数组或对象类型
 		case 'A':
 		case 'a':
 			{
@@ -505,7 +506,7 @@ static char *zend_parse_arg_impl(int arg_num, zval **arg, va_list *va, char **sp
 				}
 			}
 			break;
-
+		//对象类型
 		case 'o':
 			{
 				zval **p = va_arg(*va, zval **);
