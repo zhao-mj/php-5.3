@@ -59,7 +59,7 @@ typedef struct {
 	size_t st_size;
 	int filemode;
 } ps_files;
-
+//定义session文件
 ps_module ps_mod_files = {
 	PS_MOD(files)
 };
@@ -260,7 +260,8 @@ static int ps_files_cleanup_dir(const char *dirname, int maxlifetime TSRMLS_DC)
 }
 
 #define PS_FILES_DATA ps_files *data = PS_GET_MOD_DATA()
-
+//#define PS_OPEN_FUNC(x) 	int ps_open_##x(PS_OPEN_ARGS)
+//open方法
 PS_OPEN_FUNC(files)
 {
 	ps_files *data;
@@ -269,11 +270,12 @@ PS_OPEN_FUNC(files)
 	int argc = 0;
 	size_t dirdepth = 0;
 	int filemode = 0600;
-
+	//未设置路径
 	if (*save_path == '\0') {
 		/* if save path is an empty string, determine the temporary dir */
+		//获取临时的路径
 		save_path = php_get_temporary_directory();
-
+		//安全模式
 		if (PG(safe_mode) && (!php_checkuid(save_path, NULL, CHECKUID_CHECK_FILE_AND_DIR))) {
 			return FAILURE;
 		}

@@ -507,7 +507,7 @@ static void php_session_initialize(TSRMLS_D) /* {{{ */
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "No storage module chosen - failed to initialize session");
 		return;
 	}
-
+	
 	/* Open session handler first */
 	if (PS(mod)->s_open(&PS(mod_data), PS(save_path), PS(session_name) TSRMLS_CC) == FAILURE) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "Failed to initialize storage module: %s (path: %s)", PS(mod)->s_name, PS(save_path));
@@ -1007,7 +1007,7 @@ break_outer_loop:
 
 static ps_serializer ps_serializers[MAX_SERIALIZERS + 1] = {
 	PS_SERIALIZER_ENTRY(php),
-	PS_SERIALIZER_ENTRY(php_binary)
+	PS_SERIALIZER_ENTRY(php_binary) //二进制
 };
 
 PHPAPI int php_session_register_serializer(const char *name, int (*encode)(PS_SERIALIZER_ENCODE_ARGS), int (*decode)(PS_SERIALIZER_DECODE_ARGS)) /* {{{ */
@@ -1324,6 +1324,7 @@ PHPAPI const ps_serializer *_php_find_ps_serializer(char *name TSRMLS_DC) /* {{{
 }
 /* }}} */
 
+//保存sessionid
 #define PPID2SID \
 		convert_to_string((*ppid)); \
 		PS(id) = estrndup(Z_STRVAL_PP(ppid), Z_STRLEN_PP(ppid))
@@ -1358,7 +1359,11 @@ static void php_session_reset_id(TSRMLS_D) /* {{{ */
 	}
 }
 /* }}} */
-
+/*
+Session会话中传递SESSIONID有两种方式：
+基于cookie传递（常用方式）
+基于URL传递
+*/
 PHPAPI void php_session_start(TSRMLS_D) /* {{{ */
 {
 	zval **ppid;
@@ -1411,6 +1416,7 @@ PHPAPI void php_session_start(TSRMLS_D) /* {{{ */
 	 * cookie and get variables will be available. */
 
 	if (!PS(id)) {
+		//从cookie中查找
 		if (PS(use_cookies) && zend_hash_find(&EG(symbol_table), "_COOKIE", sizeof("_COOKIE"), (void **) &data) == SUCCESS &&
 				Z_TYPE_PP(data) == IS_ARRAY &&
 				zend_hash_find(Z_ARRVAL_PP(data), PS(session_name), lensess + 1, (void **) &ppid) == SUCCESS
@@ -1420,7 +1426,7 @@ PHPAPI void php_session_start(TSRMLS_D) /* {{{ */
 			PS(send_cookie) = 0;
 			PS(define_sid) = 0;
 		}
-
+		//从$_GET全局遍历搜素
 		if (!PS(use_only_cookies) && !PS(id) &&
 				zend_hash_find(&EG(symbol_table), "_GET", sizeof("_GET"), (void **) &data) == SUCCESS &&
 				Z_TYPE_PP(data) == IS_ARRAY &&
@@ -1430,6 +1436,7 @@ PHPAPI void php_session_start(TSRMLS_D) /* {{{ */
 			PS(send_cookie) = 0;
 		}
 
+		//从$_POST全局遍历搜索
 		if (!PS(use_only_cookies) && !PS(id) &&
 				zend_hash_find(&EG(symbol_table), "_POST", sizeof("_POST"), (void **) &data) == SUCCESS &&
 				Z_TYPE_PP(data) == IS_ARRAY &&
@@ -1880,6 +1887,7 @@ static PHP_FUNCTION(session_decode)
 
 /* {{{ proto bool session_start(void)
    Begin session - reinitializes freezed variables, registers browsers etc */
+//session开启
 static PHP_FUNCTION(session_start)
 {
 	/* skipping check for non-zero args for performance reasons here ?*/
@@ -2125,11 +2133,12 @@ static const zend_function_entry session_functions[] = {
 /* ********************************
    * Module Setup and Destruction *
    ******************************** */
-
+//请求开始调用函数
 static PHP_RINIT_FUNCTION(session) /* {{{ */
 {
+	//session初始化
 	php_rinit_session_globals(TSRMLS_C);
-
+	//未定义session.save_handler
 	if (PS(mod) == NULL) {
 		char *value;
 
@@ -2138,7 +2147,7 @@ static PHP_RINIT_FUNCTION(session) /* {{{ */
 			PS(mod) = _php_find_ps_module(value TSRMLS_CC);
 		}
 	}
-
+	//序列化操作
 	if (PS(serializer) == NULL) {
 		char *value;
 
@@ -2147,13 +2156,13 @@ static PHP_RINIT_FUNCTION(session) /* {{{ */
 			PS(serializer) = _php_find_ps_serializer(value TSRMLS_CC);
 		}
 	}
-
+	//如果mod 或 serializer其中一个为空，则session不可用
 	if (PS(mod) == NULL || PS(serializer) == NULL) {
 		/* current status is unusable */
 		PS(session_status) = php_session_disabled;
 		return SUCCESS;
 	}
-
+	//是否自动开启
 	if (PS(auto_start)) {
 		php_session_start(TSRMLS_C);
 	}
@@ -2200,9 +2209,10 @@ static PHP_GINIT_FUNCTION(ps) /* {{{ */
 	ps_globals->http_session_vars = NULL;
 }
 /* }}} */
-
+//CGI启动调用函数
 static PHP_MINIT_FUNCTION(session) /* {{{ */
 {
+	//注册session全局遍历
 	zend_register_auto_global("_SESSION", sizeof("_SESSION")-1, NULL TSRMLS_CC);
 
 	PS(module_number) = module_number; /* if we really need this var we need to init it in zts mode as well! */
@@ -2216,7 +2226,7 @@ static PHP_MINIT_FUNCTION(session) /* {{{ */
 	return SUCCESS;
 }
 /* }}} */
-
+//CGI关闭调用函数
 static PHP_MSHUTDOWN_FUNCTION(session) /* {{{ */
 {
 	UNREGISTER_INI_ENTRIES();

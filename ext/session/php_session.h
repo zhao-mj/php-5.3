@@ -41,13 +41,13 @@
 PHPAPI char *php_session_create_id(PS_CREATE_SID_ARGS);
 
 typedef struct ps_module_struct {
-	const char *s_name;
-	int (*s_open)(PS_OPEN_ARGS);
-	int (*s_close)(PS_CLOSE_ARGS);
-	int (*s_read)(PS_READ_ARGS);
-	int (*s_write)(PS_WRITE_ARGS);
-	int (*s_destroy)(PS_DESTROY_ARGS);
-	int (*s_gc)(PS_GC_ARGS);
+	const char *s_name; //名称
+	int (*s_open)(PS_OPEN_ARGS); //open方法
+	int (*s_close)(PS_CLOSE_ARGS); //close方法
+	int (*s_read)(PS_READ_ARGS); //read方法
+	int (*s_write)(PS_WRITE_ARGS); //write方法
+	int (*s_destroy)(PS_DESTROY_ARGS);//销毁方法
+	int (*s_gc)(PS_GC_ARGS);//gc回收方法
 	char *(*s_create_sid)(PS_CREATE_SID_ARGS);
 } ps_module;
 
@@ -96,8 +96,8 @@ typedef enum {
 } php_session_status;
 
 typedef struct _php_ps_globals {
-	char *save_path;
-	char *session_name;
+	char *save_path; //sessoin保存的路径
+	char *session_name; //session名称
 	char *id;
 	char *extern_referer_chk;
 	char *entropy_file;
@@ -110,7 +110,7 @@ typedef struct _php_ps_globals {
 	zend_bool  cookie_httponly;
 	ps_module *mod;
 	void *mod_data;
-	php_session_status session_status;
+	php_session_status session_status; //session状态
 	long gc_probability;
 	long gc_divisor;
 	long gc_maxlifetime;
@@ -133,7 +133,7 @@ typedef struct _php_ps_globals {
 	zval *http_session_vars;
 	zend_bool auto_start;
 	zend_bool use_cookies;
-	zend_bool use_only_cookies;
+	zend_bool use_only_cookies; //只用cookie
 	zend_bool use_trans_sid;	/* contains the INI value of whether to use trans-sid */
 	zend_bool apply_trans_sid;	/* whether or not to enable trans-sid for the current request */
 
