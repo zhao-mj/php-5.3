@@ -260,8 +260,14 @@ static int ps_files_cleanup_dir(const char *dirname, int maxlifetime TSRMLS_DC)
 }
 
 #define PS_FILES_DATA ps_files *data = PS_GET_MOD_DATA()
+//#define PS_OPEN_ARGS void **mod_data, const char *save_path, const char *session_name TSRMLS_DC
 //#define PS_OPEN_FUNC(x) 	int ps_open_##x(PS_OPEN_ARGS)
+//        PS_OPEN_FUNC(files) --->ps_open_files(PS_OPEN_ARGS)
 //open方法
+//PS(mod)->s_open(&PS(mod_data), PS(save_path), PS(session_name) TSRMLS_CC)
+//save_path: 此指令还有一个可选的 N 参数来决定会话文件分布的目录深度。例如，设定为 '5;/tmp' 将使创建的会话文件和路径类似于 /tmp/4/b/1/e/3/sess_4b1e384ad74619bd212e236e52a5a174If。
+// 要使用 N 参数，必须在使用前先创建好这些目录。
+// 在 ext/session 目录下有个小的 shell 脚本名叫 mod_files.sh，windows 版本是 mod_files.bat 可以用来做这件事。此外注意如果使用了 N 参数并且大于 0，那么将不会执行自动垃圾回收，更多信息见 php.ini。另外如果用了 N 参数，要确保将 session.save_path 的值用双引号 "quotes" 括起来，因为分隔符分号（ ;）在 php.ini 中也是注释符号。
 PS_OPEN_FUNC(files)
 {
 	ps_files *data;
@@ -286,6 +292,8 @@ PS_OPEN_FUNC(files)
 
 	/* split up input parameter */
 	last = save_path;
+	//strchr函数原型：extern char *strchr(const char *s,char c);
+	//查找字符串s中首次出现字符c的位置
 	p = strchr(save_path, ';');
 	while (p) {
 		argv[argc++] = last;
@@ -297,6 +305,10 @@ PS_OPEN_FUNC(files)
 
 	if (argc > 1) {
 		errno = 0;
+		//long int strtol(const char *nptr,char **endptr,int base);
+		//strtol函数会将参数nptr字符串根据参数base来转换成长整型数。
+		//参数base范围从2至36，或0。参数base代表采用的进制方式，如base值为10则采用10进制，若base值为16则采用16进制等。当base值为0时则是采用10进制做转换，但遇到如’0x’前置字符则会使用16进制做转换、遇到’0’前置字符而不是’0x’的时候会使用8进制做转换。
+		//目录层级
 		dirdepth = (size_t) strtol(argv[0], NULL, 10);
 		if (errno == ERANGE) {
 			php_error(E_WARNING, "The first parameter in session.save_path is invalid");
@@ -306,6 +318,7 @@ PS_OPEN_FUNC(files)
 
 	if (argc > 2) {
 		errno = 0;
+		//权限
 		filemode = strtol(argv[1], NULL, 8);
 		if (errno == ERANGE || filemode < 0 || filemode > 07777) {
 			php_error(E_WARNING, "The second parameter in session.save_path is invalid");

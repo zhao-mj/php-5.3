@@ -131,8 +131,8 @@ typedef struct _php_ps_globals {
 	zend_bool bug_compat_warn; /* Whether to warn about it */
 	const struct ps_serializer_struct *serializer;
 	zval *http_session_vars;
-	zend_bool auto_start;
-	zend_bool use_cookies;
+	zend_bool auto_start; //自动开启session
+	zend_bool use_cookies; //使用cookie
 	zend_bool use_only_cookies; //只用cookie
 	zend_bool use_trans_sid;	/* contains the INI value of whether to use trans-sid */
 	zend_bool apply_trans_sid;	/* whether or not to enable trans-sid for the current request */

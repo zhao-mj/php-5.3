@@ -257,7 +257,6 @@ static void php_session_track_init(TSRMLS_D) /* {{{ */
 	}
 }
 /* }}} */
-
 static char *php_session_encode(int *newlen TSRMLS_DC) /* {{{ */
 {
 	char *ret = NULL;
@@ -275,7 +274,7 @@ static char *php_session_encode(int *newlen TSRMLS_DC) /* {{{ */
 	return ret;
 }
 /* }}} */
-
+//解码val
 static void php_session_decode(const char *val, int vallen TSRMLS_DC) /* {{{ */
 {
 	if (!PS(serializer)) {
@@ -509,6 +508,7 @@ static void php_session_initialize(TSRMLS_D) /* {{{ */
 	}
 	
 	/* Open session handler first */
+	//example: PS(mod)->s_open => PS_OPEN_FUNC(files)
 	if (PS(mod)->s_open(&PS(mod_data), PS(save_path), PS(session_name) TSRMLS_CC) == FAILURE) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "Failed to initialize storage module: %s (path: %s)", PS(mod)->s_name, PS(save_path));
 		return;
@@ -517,6 +517,8 @@ static void php_session_initialize(TSRMLS_D) /* {{{ */
 	/* If there is no ID, use session module to create one */
 	if (!PS(id)) {
 new_session:
+		//创建一个id
+		//PS(mod)->s_create_sid => php_session_create_id() 
 		PS(id) = PS(mod)->s_create_sid(&PS(mod_data), NULL TSRMLS_CC);
 		if (PS(use_cookies)) {
 			PS(send_cookie) = 1;
@@ -530,6 +532,8 @@ new_session:
 	 * session information. */
 	php_session_track_init(TSRMLS_C);
 	PS(invalid_session_id) = 0;
+	//读取session文件内容
+	//PS(mod)->s_read() => PS_READ_FUNC(files)
 	if (PS(mod)->s_read(&PS(mod_data), PS(id), &val, &vallen TSRMLS_CC) == SUCCESS) {
 		php_session_decode(val, vallen TSRMLS_CC);
 		efree(val);
@@ -1385,6 +1389,7 @@ PHPAPI void php_session_start(TSRMLS_D) /* {{{ */
 			break;
 
 		case php_session_disabled:
+			//session不可用
 			value = zend_ini_string("session.save_handler", sizeof("session.save_handler"), 0);
 			if (!PS(mod) && value) {
 				PS(mod) = _php_find_ps_module(value TSRMLS_CC);
@@ -1484,7 +1489,7 @@ PHPAPI void php_session_start(TSRMLS_D) /* {{{ */
 			PS(apply_trans_sid) = 1;
 		}
 	}
-
+	//session初始化
 	php_session_initialize(TSRMLS_C);
 
 	if (!PS(use_cookies) && PS(send_cookie)) {
