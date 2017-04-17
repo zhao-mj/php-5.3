@@ -23,6 +23,7 @@
 
 /* {{{ proto string gettype(mixed var)
    Returns the type of the variable */
+//获取类型
 PHP_FUNCTION(gettype)
 {
 	zval **arg;
@@ -32,30 +33,31 @@ PHP_FUNCTION(gettype)
 	}
 
 	switch (Z_TYPE_PP(arg)) {
+		//null
 		case IS_NULL:
 			RETVAL_STRING("NULL", 1);
 			break;
-
+		//浮点型
 		case IS_BOOL:
 			RETVAL_STRING("boolean", 1);
 			break;
-
+		//长整型
 		case IS_LONG:
 			RETVAL_STRING("integer", 1);
 			break;
-
+		//浮点型
 		case IS_DOUBLE:
 			RETVAL_STRING("double", 1);
 			break;
-	
+		//字符串
 		case IS_STRING:
 			RETVAL_STRING("string", 1);
 			break;
-	
+		//数组
 		case IS_ARRAY:
 			RETVAL_STRING("array", 1);
 			break;
-
+		//对象
 		case IS_OBJECT:
 			RETVAL_STRING("object", 1);
 		/*
@@ -69,7 +71,7 @@ PHP_FUNCTION(gettype)
 		   }
 		 */
 			break;
-
+		//资源
 		case IS_RESOURCE:
 			{
 				char *type_name;

@@ -219,7 +219,7 @@ PHPAPI int php_get_session_var(char *name, size_t namelen, zval ***state_var TSR
 		 * if that entry is still set to NULL, and
 		 * if the global var exists, then
 		 * we prefer the same key in the global sym table. */
-
+		//注册为全局变量
 		if (PG(register_globals) && ret == SUCCESS && Z_TYPE_PP(*state_var) == IS_NULL) {
 			zval **tmp;
 
@@ -238,6 +238,7 @@ static void php_session_track_init(TSRMLS_D) /* {{{ */
 
 	/* Unconditionally destroy existing arrays -- possible dirty data */
 	zend_delete_global_variable("HTTP_SESSION_VARS", sizeof("HTTP_SESSION_VARS")-1 TSRMLS_CC);
+	//从 EG(symbol_table) 删除$_SESSION全局变量
 	zend_delete_global_variable("_SESSION", sizeof("_SESSION")-1 TSRMLS_CC);
 
 	if (PS(http_session_vars)) {
@@ -1177,7 +1178,11 @@ CACHE_LIMITER_FUNC(nocache) /* {{{ */
 	ADD_HEADER("Pragma: no-cache");
 }
 /* }}} */
-
+/*
+session_cache_limiter('nocache');// 清空表单
+session_cache_limiter('private'); //不清空表单，只在session生效期间
+session_cache_limiter('public'); //不清空表单，如同没使用session一般
+*/
 static php_session_cache_limiter_t php_session_cache_limiters[] = {
 	CACHE_LIMITER_ENTRY(public)
 	CACHE_LIMITER_ENTRY(private)
@@ -1504,12 +1509,14 @@ PHPAPI void php_session_start(TSRMLS_D) /* {{{ */
 	PS(session_status) = php_session_active;
 
 	php_session_cache_limiter(TSRMLS_C);
-
+	//session.gc_probability和session.gc_divisor, 他们分别默认为1和100.
 	if (PS(mod_data) && PS(gc_probability) > 0) {
 		int nrdels = -1;
-
+		//php_combined_lcg是一个随机数发生器, 生成0到1范围的随机数, 
 		nrand = (int) ((float) PS(gc_divisor) * php_combined_lcg(TSRMLS_C));
+		//1%概率执行一次
 		if (nrand < PS(gc_probability)) {
+			//调用session gc函数删除过期的key
 			PS(mod)->s_gc(&PS(mod_data), PS(gc_maxlifetime), &nrdels TSRMLS_CC);
 #ifdef SESSION_DEBUG
 			if (nrdels != -1) {
@@ -1650,6 +1657,7 @@ static PHP_FUNCTION(session_module_name)
 
 /* {{{ proto void session_set_save_handler(string open, string close, string read, string write, string destroy, string gc)
    Sets user-level functions */
+//重写session机制
 static PHP_FUNCTION(session_set_save_handler)
 {
 	zval ***args = NULL;
@@ -1669,6 +1677,7 @@ static PHP_FUNCTION(session_set_save_handler)
 	}
 
 	for (i = 0; i < 6; i++) {
+		//判断函数是否可以调用
 		if (!zend_is_callable(*args[i], 0, &name TSRMLS_CC)) {
 			efree(args);
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Argument %d is not a valid callback", i+1);
@@ -1677,7 +1686,7 @@ static PHP_FUNCTION(session_set_save_handler)
 		}
 		efree(name);
 	}
-
+	//修改session机制
 	zend_alter_ini_entry("session.save_handler", sizeof("session.save_handler"), "user", sizeof("user")-1, PHP_INI_USER, PHP_INI_STAGE_RUNTIME);
 
 	for (i = 0; i < 6; i++) {
@@ -1685,6 +1694,7 @@ static PHP_FUNCTION(session_set_save_handler)
 			zval_ptr_dtor(&PS(mod_user_names).names[i]);
 		}
 		Z_ADDREF_PP(args[i]);
+		//保存函数名
 		PS(mod_user_names).names[i] = *args[i];
 	}
 
@@ -1907,6 +1917,8 @@ static PHP_FUNCTION(session_start)
 
 /* {{{ proto bool session_destroy(void)
    Destroy the current session and all data associated with it */
+//销毁sesssion
+//注：此时 $_SESSION变量的值未被删除
 static PHP_FUNCTION(session_destroy)
 {
 	if (zend_parse_parameters_none() == FAILURE) {

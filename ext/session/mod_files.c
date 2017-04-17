@@ -245,8 +245,11 @@ static int ps_files_cleanup_dir(const char *dirname, int maxlifetime TSRMLS_DC)
 				buf[dirname_len + entry_len + 1] = '\0';
 
 				/* check whether its last access was more than maxlifet ago */
+				//获取文件的状态
+				//st_mtime:文件最后一次被修改的时间
 				if (VCWD_STAT(buf, &sbuf) == 0 &&
 						(now - sbuf.st_mtime) > maxlifetime) {
+					//文件已过期，则进行删除
 					VCWD_UNLINK(buf);
 					nrdels++;
 				}
@@ -343,13 +346,13 @@ PS_OPEN_FUNC(files)
 PS_CLOSE_FUNC(files)
 {
 	PS_FILES_DATA;
-
+	//关闭文件
 	ps_files_close(data);
 
 	if (data->lastkey) {
 		efree(data->lastkey);
 	}
-
+	//释放data
 	efree(data->basedir);
 	efree(data);
 	*mod_data = NULL;
@@ -447,7 +450,7 @@ PS_DESTROY_FUNC(files)
 
 	if (data->fd != -1) {
 		ps_files_close(data);
-
+		//删除session文件
 		if (VCWD_UNLINK(buf) == -1) {
 			/* This is a little safety check for instances when we are dealing with a regenerated session
 			 * that was not yet written to disk. */
@@ -469,6 +472,7 @@ PS_GC_FUNC(files)
 	   an external entity (i.e. find -ctime x | xargs rm) */
 
 	if (data->dirdepth == 0) {
+		//删除过期的session文件
 		*nrdels = ps_files_cleanup_dir(data->basedir, maxlifetime TSRMLS_CC);
 	}
 

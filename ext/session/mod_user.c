@@ -80,7 +80,7 @@ static zval *ps_call_handler(zval *func, int argc, zval **argv TSRMLS_DC)
 		zval_ptr_dtor(&retval);				\
 	}										\
 	return ret
-
+//调用用户注册的open函数
 PS_OPEN_FUNC(user)
 {
 	zval *args[2];
@@ -109,7 +109,7 @@ PS_OPEN_FUNC(user)
 
 	FINISH;
 }
-
+//调用用户注册的close函数
 PS_CLOSE_FUNC(user)
 {
 	STDVARS1;
@@ -120,7 +120,7 @@ PS_CLOSE_FUNC(user)
 
 	FINISH;
 }
-
+//调用用户注册的read函数
 PS_READ_FUNC(user)
 {
 	zval *args[1];
