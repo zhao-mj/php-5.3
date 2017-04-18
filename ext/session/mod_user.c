@@ -50,11 +50,16 @@ static zval *ps_call_handler(zval *func, int argc, zval **argv TSRMLS_DC)
 	zval *retval = NULL;
 
 	MAKE_STD_ZVAL(retval);
+	//调用 EG(function_table) 的func函数 
+	//func:函数名
+	//retval:返回值
+	//argc:参数个数
+	//argv:参数值
 	if (call_user_function(EG(function_table), NULL, func, retval, argc, argv TSRMLS_CC) == FAILURE) {
 		zval_ptr_dtor(&retval);
 		retval = NULL;
 	}
-
+	//释放argv
 	for (i = 0; i < argc; i++) {
 		zval_ptr_dtor(&argv[i]);
 	}
@@ -141,15 +146,15 @@ PS_READ_FUNC(user)
 
 	return ret;
 }
-
+//调用用户注册的write函数
 PS_WRITE_FUNC(user)
 {
 	zval *args[2];
 	STDVARS;
-
+	//第一个参数为key
 	SESS_ZVAL_STRING((char*)key, args[0]);
+	//第二个参数为val
 	SESS_ZVAL_STRINGN((char*)val, vallen, args[1]);
-
 	retval = ps_call_handler(PSF(write), 2, args TSRMLS_CC);
 
 	FINISH;

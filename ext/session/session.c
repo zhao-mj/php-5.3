@@ -1663,7 +1663,7 @@ static PHP_FUNCTION(session_set_save_handler)
 	zval ***args = NULL;
 	int i, num_args, argc = ZEND_NUM_ARGS();
 	char *name;
-
+	//已调用session_start()函数
 	if (PS(session_status) != php_session_none) {
 		RETURN_FALSE;
 	}

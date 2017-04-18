@@ -117,7 +117,13 @@ typedef struct _php_ps_globals {
 	int module_number;
 	long cache_expire;
 	union {
-		zval *names[6];
+		//names[0] => *ps_open 
+		//names[1] => *ps_close
+		//names[2] => *ps_read 
+		//names[3] => *ps_write
+		//names[4] => *ps_desctroy
+		//names[5] => *ps_gc
+		zval *names[6]; 
 		struct {
 			zval *ps_open;
 			zval *ps_close;
