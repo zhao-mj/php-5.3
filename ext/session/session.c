@@ -2198,6 +2198,7 @@ static PHP_RSHUTDOWN_FUNCTION(session) /* {{{ */
 	php_rshutdown_session_globals(TSRMLS_C);
 
 	/* this should NOT be done in php_rshutdown_session_globals() */
+	//关闭用户自定义session机制
 	for (i = 0; i < 6; i++) {
 		if (PS(mod_user_names).names[i] != NULL) {
 			zval_ptr_dtor(&PS(mod_user_names).names[i]);
